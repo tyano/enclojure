@@ -35,12 +35,16 @@ import org.openide.util.actions.Presenter;
 
 public class DebugProjectWithReplContextMenuAction extends AbstractAction implements ContextAwareAction {
 
-    static final Var debugContextMenuNameFn =
-        RT.var("org.enclojure.ide.nb.editor.repl-win", "debug-context-menu-name");
-    static final Var attachDetachDebugger =
-        RT.var("org.enclojure.ide.nb.editor.repl-win", "start-attach-detach-debugger");
+    static {
+        SourceLoader.loadReplWin();
+    }
+    static final Var debugContextMenuNameFn = RT.var("org.enclojure.ide.nb.editor.repl-win", "debug-context-menu-name");
+    static final Var attachDetachDebugger = RT.var("org.enclojure.ide.nb.editor.repl-win", "start-attach-detach-debugger");
 
+    @Override
     public void actionPerformed(ActionEvent e) {assert false;}
+
+    @Override
     public Action createContextAwareInstance(Lookup context) {
         return new ContextAction(context);
     }
@@ -81,20 +85,25 @@ public class DebugProjectWithReplContextMenuAction extends AbstractAction implem
     }
 
     private final class ContextAction extends AbstractAction implements Presenter.Popup {
+        private static final long serialVersionUID = 1L;
         private final Project p;
 
         public ContextAction(Lookup context) {
-            Project _p = (Project) context.lookup(Project.class);
+            Project _p = context.lookup(Project.class);
             p = (_p != null && enable(_p)) ? _p : null;
         }
+        @Override
         public void actionPerformed(ActionEvent e) {
             perform(p);
         }
+        @Override
         public JMenuItem getPopupPresenter() {
             class Presenter extends JMenuItem implements DynamicMenuContent {
+                private static final long serialVersionUID = 1L;
                 public Presenter() {
                     super(ContextAction.this);
                 }
+                @Override
                 public JComponent[] getMenuPresenters() {
                     if (p != null) {
                         Mnemonics.setLocalizedText(this, labelFor(p));
@@ -103,6 +112,7 @@ public class DebugProjectWithReplContextMenuAction extends AbstractAction implem
                         return new JComponent[0];
                     }
                 }
+                @Override
                 public JComponent[] synchMenuPresenters(JComponent[] items) {
                     return getMenuPresenters();
                 }

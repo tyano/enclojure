@@ -26,6 +26,7 @@ import clojure.lang.IFn;
 import clojure.lang.RT;
 import org.enclojure.ide.core.LogAdapter;
 import javax.swing.text.JTextComponent;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.netbeans.spi.editor.completion.CompletionProvider;
 import org.netbeans.spi.editor.completion.CompletionTask;
 import org.openide.util.Exceptions;
@@ -33,7 +34,11 @@ import org.openide.util.Exceptions;
 @SuppressWarnings("unchecked")
 public class CljCompletionProvider implements CompletionProvider {
     private static final LogAdapter LOG = new LogAdapter(CljCompletionProvider.class.getName());
-    
+
+    static {
+        SourceLoader.loadCompletionTask();
+        SourceLoader.loadCompletionProvider();
+    }
     final IFn createTaskFn = (IFn)RT.var("org.enclojure.ide.nb.editor.completion.completion-task"
                                     ,"get-completion-task");
     final IFn prepareQueryFn = (IFn)RT.var("org.enclojure.ide.nb.editor.completion.completion-task"
@@ -43,6 +48,7 @@ public class CljCompletionProvider implements CompletionProvider {
 
     Object prepdata; // yuck
     
+    @Override
     public int getAutoQueryTypes(JTextComponent arg0, String arg1) {
         try {
             return ((Integer) getAutoQueryTypesFn.invoke(arg0,arg1)).intValue();
@@ -52,6 +58,7 @@ public class CljCompletionProvider implements CompletionProvider {
         return 0;
     }
 
+    @Override
     public CompletionTask createTask(int i, final JTextComponent jTextComponent) {
         try {
             return (CompletionTask) createTaskFn.invoke(i,jTextComponent);

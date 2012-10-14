@@ -20,11 +20,11 @@ package org.enclojure.ide.nb.editor;
 
 import clojure.lang.IFn;
 import clojure.lang.RT;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import org.enclojure.ide.core.LogAdapter;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataNode;
 import org.openide.loaders.DataObjectExistsException;
@@ -43,10 +43,15 @@ public class ClojureMimeTypeDataObject extends MultiDataObject {
     private static final LogAdapter LOG = new LogAdapter(ClojureMimeTypeDataObject.class.getName());
 
     CloneableEditorSupport ed;
-    IFn getNewPropertyListenerFn =
+
+    static {
+        SourceLoader.loadDataObjectListener();
+    }
+
+    static final IFn getNewPropertyListenerFn =
             (IFn)RT.var("org.enclojure.ide.nb.editor.data-object-listener"
                         ,"get-property-listener");
-    
+
     public Object clojureAnalyzerData=null;
 
     public ClojureMimeTypeDataObject(FileObject pf, MultiFileLoader loader)

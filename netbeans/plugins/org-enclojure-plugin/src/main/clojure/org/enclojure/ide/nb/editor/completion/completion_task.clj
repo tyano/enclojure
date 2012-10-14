@@ -56,7 +56,7 @@
 ; Instance methods
 ; (.fred
 ; (-> target .fred (if I knew something about target...
-; (memfn 
+; (memfn
 
 ; Find namespace or class globally
 ; fred.
@@ -69,7 +69,7 @@
 ;
 
 (defn namespaces-only?
-  [{:keys [start length prev-char first-char 
+  [{:keys [start length prev-char first-char
            input special-fn first-lparen context-in] :as args} ci]
   (and special-fn
     (#{"ns" "in-ns" ":require" "require" ":use" "use" ":refer" "refer"} special-fn)))
@@ -84,7 +84,7 @@
   [{:keys [start length prev-char first-char
            input special-fn first-lparen context-in] :as args} ci]
   (and (java-packages-only? args ci)
-    first-lparen 
+    first-lparen
     (not= first-lparen special-fn)
     (not= first-lparen input)))
 
@@ -125,14 +125,14 @@
       (= prev-char "(")  :funcall ; any clojure functions in scope
       ;<java class name>. for looking up member functions
        :else :any))
-      
+
 (defmulti query-type-dataset
   (fn [attribs completion-info]
     (when (not completion-info)
       (throw (Exception. "completion-info nil! Cannot perform operation")))
     (query-type-dataset-fn attribs completion-info)))
 
-(defn check-for-token-walking 
+(defn check-for-token-walking
   "Any character followed by an uppercase charactor"
   [#^CharSequence intext]
   (let [c (count intext)]
@@ -150,8 +150,8 @@
    (logger/warn ":all-instance-members- info {}" completion-info)
      ;(file-mapping/log-completion-info completion-info))
   (merge (check-for-token-walking input)
-  {:search-token   
-   (cond 
+  {:search-token
+   (cond
      (.startsWith input "(.") (subs input 2)
      (.startsWith input ".") (subs input 1)
      :else input)
@@ -183,7 +183,7 @@
 ;"All hippy completion candidates
 ;   All clojure publics from refered and used namespaces
 ;   Java statics and required namespaces need qualification so they are omitted here"
-(defmethod query-type-dataset :funcall  
+(defmethod query-type-dataset :funcall
   [{:keys [input]} completion-info]
     (logger/warn "funcall")
   (merge (check-for-token-walking input)
@@ -235,10 +235,10 @@
         (dec caret-offset) caret-offset)))
 
 (defn get-basic-completion-input
-    "given a doc or a string with a possibly partial form and a position, 
+    "given a doc or a string with a possibly partial form and a position,
     attempt to find the token. returns a maps with:
-    :start, :end, :length, :caret-offset, :search-offset,:first-char,:prev-char                           
-    :input"                
+    :start, :end, :length, :caret-offset, :search-offset,:first-char,:prev-char
+    :input"
   [document caret-offset]
   (let [search-offset (check-caret-pos document caret-offset)
         start (symbol-nav/find-start-boundary document search-offset)
@@ -260,8 +260,8 @@
                     "")}))
 ;*******************************************************************************
 ; Helper code for doing more context aware searching
-;******************************************************************************* 
-(def *specials*
+;*******************************************************************************
+(def ^:dynamic *specials*
   (set (map str
   ['ns
    'in-ns
@@ -308,7 +308,7 @@
                       _ (logger/info "cidx " cidx " offset " offset)
                       cid (if (pos? cidx) (substr (inc offset) (- cidx offset 1)))
                       special-fn (*specials* cid)
-                      first-lparen (or first-lparen 
+                      first-lparen (or first-lparen
                                      (when-not rparen cid))
                       context-in (or context-in
                                    (and special-fn
@@ -353,7 +353,7 @@
                       context-in (or context-in
                                    (and special-fn
                                      (substr cidx (- start-offset cidx))))]
-                  (logger/info (str "find-cursor-context: "                                 
+                  (logger/info (str "find-cursor-context: "
                                     " cidx " cidx
                                     " :cid " cid
                                     " cid-len " (count cid)
@@ -462,7 +462,7 @@ Returns a vector of items"
               matches)))))
 
 (defn do-search
-  "worker function to do the actual search"  
+  "worker function to do the actual search"
   [search-token forms pred? info]
   (logger/debug "{} token {}" info search-token)
     (filter (fn [{name :name}]
@@ -487,10 +487,10 @@ Returns a vector of items"
 
 (defn remove-dups2 [forms]
     (loop [forms forms results [] lookup #{}]
-      (if-let [f (first forms)]        
+      (if-let [f (first forms)]
          (if (lookup (str (:name f) (:arglists f)))
            (recur (rest forms) results lookup)
-           (recur (rest forms) (conj results f) 
+           (recur (rest forms) (conj results f)
              (conj lookup (str (:name f) (:arglists f)))))
         results)))
 
@@ -502,7 +502,7 @@ Returns a vector of items"
               exists? (lookup nname)]
          (if (and exists? (:arglists exists?))
            (recur (rest forms) lookup)
-           (recur (rest forms) 
+           (recur (rest forms)
              (assoc lookup nname f))))
         (vals lookup))))
 
@@ -511,10 +511,10 @@ Returns a vector of items"
 (defn get-completion-query [query-type text-component]
   (let [data {:query-type query-type :text-component text-component}]
   (proxy [org.netbeans.spi.editor.completion.support.AsyncCompletionQuery] []
-    (query [#^CompletionResultSet resultset #^Document document caretOffset]              
+    (query [#^CompletionResultSet resultset #^Document document caretOffset]
       (try ; Always grab the current editor pane.  Could be invoked from a repl
       (let [{:keys [file doc]} (editor-utils/get-current-editor-data)]
-        (let [completion-info 
+        (let [completion-info
                 (if-let [c (file-mapping/ensure-completion-info file)]
                   c (file-mapping/get-default-completion-info))
               input (if (not= doc document) ; its the repl,keep it simple

@@ -20,16 +20,19 @@ package org.enclojure.ide.preferences;
 
 import clojure.lang.IFn;
 import clojure.lang.RT;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.Exceptions;
 
 public final class EnclojurePreferencesPanel extends javax.swing.JPanel {
 
+    static {
+        SourceLoader.loadPlatformOptions();
+    }
+
     private final OptionsPanelController controller;
     IFn dispatcherFn = RT.var("org.enclojure.ide.preferences.platform-options","disp-hack");
-    IFn startNonProjectREPLFn = RT.var("org.enclojure.ide.nb.editor.repl-win","start-stand-alone-repl-action");
-    IFn tabbedStateChangedFn = RT.var("org.enclojure.ide.preferences.enclojure-options-category"
-                                     ,"tabbed-panel-changed");
+
     public EnclojurePreferencesPanel(OptionsPanelController controller) {
         this.controller = controller;
         initComponents();
@@ -632,11 +635,7 @@ public final class EnclojurePreferencesPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_removeClasspathButtonActionPerformed
 
     private void jTabbedPane1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jTabbedPane1StateChanged
-               try {
-            tabbedStateChangedFn.invoke( this, evt);
-        } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
-        }
+        EnclojureOptionsCategory.tabbedStateChanged(this, evt);
     }//GEN-LAST:event_jTabbedPane1StateChanged
 
     private void classPathListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_classPathListValueChanged

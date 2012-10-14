@@ -27,7 +27,7 @@ import clojure.lang.Symbol;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import org.enclojure.ide.core.LogAdapter;
-import org.enclojure.ide.repl.ReplPanel;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.openide.modules.ModuleInstall;
 
 /**
@@ -39,6 +39,11 @@ public class Installer extends ModuleInstall {
     private static final LogAdapter LOG = new LogAdapter(Installer.class.getName());
 
     Logger etlog = Logger.getLogger("enclojure-installer");
+
+    static {
+        SourceLoader.loadClojureCore();
+        SourceLoader.loadClassPathsListener();
+    }
 
     final Var requireFn = RT.var("clojure.core","require");
     final IFn setupTrackingFn = (IFn)RT.var("org.enclojure.ide.nb.classpaths.listeners", "start-service");
@@ -80,7 +85,6 @@ public class Installer extends ModuleInstall {
             requireFn.invoke(Symbol.create("org.enclojure.ide.preferences.platform-options"));
             requireFn.invoke(Symbol.create("org.enclojure.ide.preferences.enclojure-options-category"));
             etlog.log(Level.INFO,"Enclojure installer 4");
-            requireFn.invoke(Symbol.create("org.enclojure.ide.nb.editor.repl-focus"));
             requireFn.invoke(Symbol.create("org.enclojure.ide.nb.actions.action-handler"));
             //??RT.var("org.enclojure.ide.nb.editor.repl-tc", "init-repl-tc").invoke();
             requireFn.invoke(Symbol.create("org.enclojure.ide.navigator.analyze"));

@@ -20,13 +20,15 @@ import org.openide.util.Exceptions;
  * @author magrawal
  */
 public class CreateStandaloneReplDialog extends javax.swing.JDialog {
+    private static final long serialVersionUID = 1L;
 
-    static final Var nonProjectRepl =
-      RT.var("org.enclojure.ide.nb.editor.repl-win", "start-stand-alone-repl-action");
-    static final Var saveSettings =
-      RT.var("org.enclojure.ide.settings.utils", "put-prefs");
-    static final Var loadSettings =
-      RT.var("org.enclojure.ide.settings.utils", "get-prefs");
+    static {
+        SourceLoader.loadReplWin();
+        SourceLoader.loadSettingsUtils();
+    }
+    static final Var nonProjectRepl = RT.var("org.enclojure.ide.nb.editor.repl-win", "start-stand-alone-repl-action");
+    static final Var saveSettings = RT.var("org.enclojure.ide.settings.utils", "put-prefs");
+    static final Var loadSettings = RT.var("org.enclojure.ide.settings.utils", "get-prefs");
     
     static final String ns_settings = "org.enclojure.ide.preferences.enclojure-options-category";
     /** Creates new form ClojureReplDialog */
@@ -191,9 +193,11 @@ public class CreateStandaloneReplDialog extends javax.swing.JDialog {
     */
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 CreateStandaloneReplDialog dialog = new CreateStandaloneReplDialog(new javax.swing.JFrame(), true);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
                         System.exit(0);
                     }

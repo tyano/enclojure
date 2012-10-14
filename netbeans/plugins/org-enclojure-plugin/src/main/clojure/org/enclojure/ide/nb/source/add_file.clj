@@ -20,7 +20,7 @@
     (java.io File)
     (java.util.logging Level)
     (javax.swing JComponent DefaultComboBoxModel)
-    (javax.swing.event ChangeListener DocumentListener)
+    (javax.swing.event ChangeListener DocumentListener DocumentEvent)
     (org.netbeans.api.project Project)
     (org.netbeans.spi.project.ui.templates.support Templates)
     (org.openide WizardDescriptor)
@@ -82,7 +82,7 @@
 source roots is a map from diplay name to the root file object."
   [source-roots target-folder]
   (let [target-str (str target-folder)
-        [disp-name root] 
+        [disp-name root]
             (first (filter (fn [[disp-name file-obj]]
                       (.startsWith target-str (str file-obj)))
                     source-roots))
@@ -90,7 +90,7 @@ source roots is a map from diplay name to the root file object."
     (logger/debug "dispname {} root {}" disp-name root)
     (when root
       {:root root
-       :root-name disp-name       
+       :root-name disp-name
        :ns (when (> (count target-str)
                    (count root-str))
               (subs target-str
@@ -134,7 +134,7 @@ source roots is a map from diplay name to the root file object."
     (DefaultComboBoxModel.
         (into-array
             (reduce (fn [v f]
-                      (conj v 
+                      (conj v
                         (ns-from-root-file-object
                           root-str (get-canonical-path f))))
                             []
@@ -149,7 +149,7 @@ source roots is a map from diplay name to the root file object."
                                   (.getPath file-obj)) inx))
                      source-roots (range (count source-roots)))))
         root (or (find-fn (str maybe-null-target))
-                (find-fn "Source Packages") 0)]    
+                (find-fn "Source Packages") 0)]
     (when (> (-> location-ui .getModel .getSize) root)
       (.setSelectedIndex location-ui root))
     ))
@@ -175,7 +175,7 @@ source roots is a map from diplay name to the root file object."
           full-path (str root
                         File/separator pkg-dir
                         File/separator fname)]
-      (.setText (.createdFileTextField file-pane) 
+      (.setText (.createdFileTextField file-pane)
         (get-canonical-path full-path)))))
 
 (defn set-combo-box-to
@@ -226,7 +226,7 @@ source roots is a map from diplay name to the root file object."
             (.putProperty wizard-descriptor
                 WizardDescriptor/PROP_ERROR_MESSAGE nil)))
       (zero? (count err-msg)))))
-  
+
 (defn init-edit-scheme
   [project-info file-pane wizard-descriptor file-wizard default-target-folder]
   (let [roots-array (into-array (keys (:source-roots project-info)))]
@@ -312,7 +312,7 @@ source roots is a map from diplay name to the root file object."
         namesp (str (-> (.packagesComboBox file-pane) .getEditor .getItem)
              "." ns-suffix)
         file (.replace (str  ns-suffix ".clj") \- \_)
-        full-path (.getText (.createdFileTextField file-pane))        
+        full-path (.getText (.createdFileTextField file-pane))
         base-path (subs full-path 0 (.indexOf full-path file))
         target-folder (FileUtil/createFolder (File. base-path))
         data-folder (DataFolder/findFolder target-folder)]
@@ -326,8 +326,8 @@ source roots is a map from diplay name to the root file object."
       (when-let [open-cookie
                  (.getCookie newf OpenCookie)]
         (.open open-cookie)))))
-    
 
-    
+
+
 
 

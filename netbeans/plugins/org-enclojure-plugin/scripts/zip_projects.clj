@@ -1,7 +1,6 @@
 (ns build.zip-projects
  (:require
-   [clojure.contrib.duck-streams :as duck-streams]
-   [clojure.contrib.java-utils :as java-utils]
+   [clojure.java.io :as io]
    [org.enclojure.commons.c-slf4j :as logger]
    [org.enclojure.repl.main :as repl.main]
    )
@@ -16,21 +15,21 @@
 ; setup logging
 (logger/ensure-logger)
 
-(def *src-base-dir* (str (System/getProperty "user.dir")
+(def ^:dynamic *src-base-dir* (str (System/getProperty "user.dir")
                       "/../../../templates/netbeans"))
-(def *dest-base-dir* (str (System/getProperty "user.dir")
+(def ^:dynamic *dest-base-dir* (str (System/getProperty "user.dir")
                        "/src/main/resources/org/enclojure/ide"))
 
-(def *src-project-templates-dir* (str *src-base-dir* "/ProjectTemplates"))
-(def *src-project-samples-dir* (str *src-base-dir* "/SampleProjects"))
-(def *filter-files* [".jar" "/private" ".class" "/classes"])
+(def ^:dynamic *src-project-templates-dir* (str *src-base-dir* "/ProjectTemplates"))
+(def ^:dynamic *src-project-samples-dir* (str *src-base-dir* "/SampleProjects"))
+(def ^:dynamic *filter-files* [".jar" "/private" ".class" "/classes"])
 
-(def *dest-project-templates-dir* (str *dest-base-dir* "/templates/project"))
-(def *dest-project-samples-dir* (str *dest-base-dir* "/project/samples"))
+(def ^:dynamic *dest-project-templates-dir* (str *dest-base-dir* "/templates/project"))
+(def ^:dynamic *dest-project-samples-dir* (str *dest-base-dir* "/project/samples"))
 
 (defn get-directories [path]
-  (filter #(.isDirectory %) 
-    (vec (.listFiles (java-utils/file path)))))
+  (filter #(.isDirectory %)
+    (vec (.listFiles (io/file path)))))
 
 (defn process-completed [exit-value]
   (println  "Process terminated: {}" exit-value))
@@ -78,14 +77,14 @@
                                             #(.readLine err-pipe-reader)
                                       ex))))))
 
-(defn zip-files [target-path    
-                 src-base-dir]  
-  (let [name (.getName (java-utils/file src-base-dir))
+(defn zip-files [target-path
+                 src-base-dir]
+  (let [name (.getName (io/file src-base-dir))
         full-target (File. (str target-path "/" name)
-                      (str name ".zip"))]    
-  (when (.exists full-target)    
+                      (str name ".zip"))]
+  (when (.exists full-target)
     (.delete full-target))
-  (.mkdirs (java-utils/file (str target-path "/" name)))  
+  (.mkdirs (io/file (str target-path "/" name)))
   (zip-dir full-target src-base-dir)))
 
 (defn zip-it [target-path src-base-dir]

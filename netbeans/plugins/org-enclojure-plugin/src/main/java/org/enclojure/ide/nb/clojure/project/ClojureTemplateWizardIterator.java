@@ -51,7 +51,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import java.util.logging.Level;
 import org.enclojure.ide.core.LogAdapter;
-import org.netbeans.api.project.Project;
+import org.enclojure.ide.nb.actions.SourceLoader;
 
 
 public class ClojureTemplateWizardIterator implements WizardDescriptor./*Progress*/InstantiatingIterator {
@@ -211,6 +211,10 @@ public class ClojureTemplateWizardIterator implements WizardDescriptor./*Progres
         props.load(new FileInputStream(filePath));
         props.setProperty(key, value);
         props.store(new FileOutputStream(filePath), "Replaced [key=" + key +"] with [" + value + "].");
+    }
+
+    static {
+        SourceLoader.loadProjectCreate();
     }
     
     private static void unZipFile(InputStream source, File projectRoot,String defPackage,String projectName) throws IOException, Exception {

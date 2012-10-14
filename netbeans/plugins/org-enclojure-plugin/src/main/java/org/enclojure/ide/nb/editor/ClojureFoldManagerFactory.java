@@ -20,6 +20,7 @@ package org.enclojure.ide.nb.editor;
 import org.netbeans.spi.editor.fold.FoldManager;
 import org.netbeans.spi.editor.fold.FoldManagerFactory;
 import clojure.lang.*;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.openide.util.Exceptions;
 
 /**
@@ -27,9 +28,14 @@ import org.openide.util.Exceptions;
  * @author ffailla
  */
 public class ClojureFoldManagerFactory implements FoldManagerFactory {
-    final static IFn clojureFoldManager = 
+    static {
+        SourceLoader.loadFoldingManager();
+    }
+
+    final static IFn clojureFoldManager =
             (IFn)RT.var("org.enclojure.ide.nb.editor.folding.manager"
                         , "get-fold-manager-proxy");
+
     public FoldManager createFoldManager() {
         try {
             //return new ClojureFoldManager();

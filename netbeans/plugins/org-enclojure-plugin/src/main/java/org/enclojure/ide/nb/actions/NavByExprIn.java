@@ -30,10 +30,13 @@ import org.openide.util.actions.CookieAction;
 
 public final class NavByExprIn extends CookieAction {
 
+    static {
+        SourceLoader.loadTokenNav();
+    }
     static final Var navCurrentFormEndFn =
             RT.var("org.enclojure.ide.navigator.token-nav", "nav-current-form-end");
 
-
+    @Override
     protected void performAction(Node[] activatedNodes) {
         EditorCookie editorCookie = activatedNodes[0].getLookup().lookup(EditorCookie.class);
         if(editorCookie != null)
@@ -47,16 +50,19 @@ public final class NavByExprIn extends CookieAction {
         }
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_EXACTLY_ONE;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(NavByExprIn.class, "CTL_NavByExprIn");
     }
 
-    protected Class[] cookieClasses() {
-        return new Class[]{EditorCookie.class};
+    @Override
+    protected Class<?>[] cookieClasses() {
+        return new Class<?>[]{EditorCookie.class};
     }
 
     @Override
@@ -66,6 +72,7 @@ public final class NavByExprIn extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

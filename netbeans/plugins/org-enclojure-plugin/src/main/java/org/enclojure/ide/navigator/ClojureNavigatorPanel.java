@@ -5,13 +5,13 @@
 
 package org.enclojure.ide.navigator;
 
-import clojure.lang.IFn;
 import clojure.lang.RT;
 import clojure.lang.Var;
 import java.awt.BorderLayout;
 import java.util.Collection;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.netbeans.spi.navigator.NavigatorPanel;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -21,10 +21,12 @@ import org.openide.util.LookupListener;
 @SuppressWarnings("unchecked") 
 public class ClojureNavigatorPanel implements NavigatorPanel {
 
-
+    static {
+        SourceLoader.loadNavigatorPanel();
+    }
     private Var _checkNewContextFn =
-                    RT.var("org.enclojure.ide.navigator.views.navigator-panel",
-                            "new-context");
+                        RT.var("org.enclojure.ide.navigator.views.navigator-panel",
+                                "new-context");
 
     /** holds UI of this panel */
     private JComponent panelUI;
@@ -40,14 +42,17 @@ public class ClojureNavigatorPanel implements NavigatorPanel {
     public ClojureNavigatorPanel() {
     }
 
+    @Override
     public String getDisplayHint() {
         return "Basic dummy implementation of NavigatorPanel interface";
     }
 
+    @Override
     public String getDisplayName() {
         return "Dummy View";
     }
 
+    @Override
     public JComponent getComponent() {
         if (panelUI == null) {
             panelUI = new JPanel(new BorderLayout());
@@ -56,6 +61,7 @@ public class ClojureNavigatorPanel implements NavigatorPanel {
     }
 
     @SuppressWarnings("unchecked") 
+    @Override
     public void panelActivated(Lookup context) {
 
         //This is getting called without the panel created for the very first time
@@ -70,11 +76,13 @@ public class ClojureNavigatorPanel implements NavigatorPanel {
         setNewContent(data);
     }
 
+    @Override
     public void panelDeactivated() {
         curContext.removeLookupListener(getContextListener());
         curContext = null;
     }
 
+    @Override
     public Lookup getLookup () {
         // go with default activated Node strategy
         return null;
@@ -102,6 +110,7 @@ public class ClojureNavigatorPanel implements NavigatorPanel {
     /** Listens to changes of context and triggers proper action */
     private class ContextListener implements LookupListener {
 
+        @Override
         public void resultChanged(LookupEvent ev) {
             Collection data = ((Lookup.Result)ev.getSource()).allInstances();
             setNewContent(data);

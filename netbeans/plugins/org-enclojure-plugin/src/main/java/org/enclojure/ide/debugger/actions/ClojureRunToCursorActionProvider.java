@@ -69,19 +69,25 @@ import org.openide.util.Exceptions;
 import org.openide.windows.TopComponent;
 import org.enclojure.ide.debugger.breakpoints.ClojureLineBreakpoint;
 import org.enclojure.ide.debugger.util.Utils;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.netbeans.spi.debugger.ActionsProviderSupport;
 
 public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
     
+    static {
+        SourceLoader.loadJdi();
+    }
     static final Var sessionRemovedFn =
-            RT.var("org.enclojure.ide.debugger.jdi", "session-removed");
+                RT.var("org.enclojure.ide.debugger.jdi", "session-removed");
+
 
     private EditorContext editorContext;
     private ClojureLineBreakpoint breakpoint;
         
     {
-        editorContext = (EditorContext) DebuggerManager.
-            getDebuggerManager().lookupFirst(null, EditorContext.class);
+        editorContext = DebuggerManager
+                            .getDebuggerManager()
+                            .lookupFirst(null, EditorContext.class);
         
         Listener listener = new Listener ();
         MainProjectManager.getDefault ().addPropertyChangeListener (listener);
@@ -91,10 +97,12 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
         setEnabled(ActionsManager.ACTION_RUN_TO_CURSOR, shouldBeEnabled());
     }
     
-    public Set getActions() {
+    @Override
+    public Set<Object> getActions() {
         return Collections.singleton (ActionsManager.ACTION_RUN_TO_CURSOR);
     }
     
+    @Override
     public void doAction (Object action) {
         
         // 1) set breakpoint
@@ -102,13 +110,14 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
         createBreakpoint();
         
         // 2) start debugging of project
-        ((ActionProvider) MainProjectManager.getDefault().
-            getMainProject().getLookup().lookup(
-                ActionProvider.class
-            )).invokeAction (
-                ActionProvider.COMMAND_DEBUG, 
-                MainProjectManager.getDefault ().getMainProject ().getLookup ()
-            );
+        MainProjectManager.getDefault()
+                .getMainProject()
+                .getLookup()
+                .lookup(ActionProvider.class)
+                .invokeAction (
+                    ActionProvider.COMMAND_DEBUG,
+                    MainProjectManager.getDefault ().getMainProject ().getLookup ()
+                );
     }
     
     private boolean shouldBeEnabled () {
@@ -120,7 +129,7 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
         // check if current project supports this action
         Project p = MainProjectManager.getDefault ().getMainProject ();
         if (p == null) return false;
-        ActionProvider actionProvider = (ActionProvider)p.getLookup ().lookup (ActionProvider.class);
+        ActionProvider actionProvider = p.getLookup().lookup (ActionProvider.class);
         if (actionProvider == null) return false;
 
         String[] sa = actionProvider.getSupportedActions ();
@@ -135,12 +144,11 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
         }
 
         // check if this action should be enabled
-        return ((ActionProvider) p.getLookup ().lookup (
-                ActionProvider.class
-            )).isActionEnabled (
-                ActionProvider.COMMAND_DEBUG, 
-                p.getLookup ()
-            );
+        return p.getLookup ()
+                .lookup(ActionProvider.class)
+                .isActionEnabled (
+                    ActionProvider.COMMAND_DEBUG,
+                    p.getLookup());
     }
 
     private void createBreakpoint() {
@@ -160,10 +168,11 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
     }
     
     private class Listener implements PropertyChangeListener, DebuggerManagerListener {
+        @Override
         public void propertyChange (PropertyChangeEvent e) {
             if ((e == null) || (TopComponent.Registry.PROP_OPENED.equals(e.getPropertyName())))
                 return;
-            if (e.getPropertyName () == JPDADebugger.PROP_STATE) {
+            if (e.getPropertyName().equals(JPDADebugger.PROP_STATE)) {
                 int state = ((Integer) e.getNewValue ()).intValue ();
                 if (state == JPDADebugger.STATE_DISCONNECTED || state == JPDADebugger.STATE_STOPPED)
                     removeBreakpoint ();
@@ -176,6 +185,7 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
             );
         }
         
+        @Override
         public void sessionRemoved (Session session) {
             try {
                 sessionRemovedFn.invoke(session);
@@ -186,19 +196,26 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
             removeBreakpoint();
         }
         
+        @Override
         public void breakpointAdded (Breakpoint breakpoint) {}
+        @Override
         public void breakpointRemoved (Breakpoint breakpoint) {}
+        @Override
         public Breakpoint[] initBreakpoints () {
             return new Breakpoint [0];
         }
+        @Override
         public void initWatches () {}
+        @Override
         public void sessionAdded (Session session) {}
+        @Override
         public void watchAdded (Watch watch) {}
+        @Override
         public void watchRemoved (Watch watch) {}
 
+        @Override
         public void engineAdded (DebuggerEngine engine) {
-            JPDADebugger debugger = (JPDADebugger) engine.lookupFirst 
-                (null, JPDADebugger.class);
+            JPDADebugger debugger = engine.lookupFirst(null, JPDADebugger.class);
             if (debugger == null) return;
             debugger.addPropertyChangeListener (
                 JPDADebugger.PROP_STATE,
@@ -206,9 +223,9 @@ public class ClojureRunToCursorActionProvider extends ActionsProviderSupport {
             );
         }
         
+        @Override
         public void engineRemoved (DebuggerEngine engine) {
-            JPDADebugger debugger = (JPDADebugger) engine.lookupFirst 
-                (null, JPDADebugger.class);
+            JPDADebugger debugger = engine.lookupFirst(null, JPDADebugger.class);
             if (debugger == null) return;
             debugger.removePropertyChangeListener (
                 JPDADebugger.PROP_STATE,

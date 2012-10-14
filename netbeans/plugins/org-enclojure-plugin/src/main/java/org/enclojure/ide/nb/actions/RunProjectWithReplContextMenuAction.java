@@ -35,12 +35,20 @@ import org.openide.util.actions.Presenter;
 
 public class RunProjectWithReplContextMenuAction extends AbstractAction implements ContextAwareAction {
 
-    static final Var startStopProjectReplFn =
-        RT.var("org.enclojure.ide.nb.editor.repl-win", "start-stop-project-repl");
-    static final Var runContextMenuNameFn =
-        RT.var("org.enclojure.ide.nb.editor.repl-win", "run-context-menu-name");
+    static {
+        SourceLoader.loadReplWin();
+    }
 
+    static final Var startStopProjectReplFn =
+            RT.var("org.enclojure.ide.nb.editor.repl-win", "start-stop-project-repl");
+    static final Var runContextMenuNameFn =
+            RT.var("org.enclojure.ide.nb.editor.repl-win", "run-context-menu-name");
+
+
+    @Override
     public void actionPerformed(ActionEvent e) {assert false;}
+
+    @Override
     public Action createContextAwareInstance(Lookup context) {
         return new ContextAction(context);
     }
@@ -74,14 +82,19 @@ public class RunProjectWithReplContextMenuAction extends AbstractAction implemen
             Project _p =  context.lookup(Project.class);
             p = (_p != null && enable(_p)) ? _p : null;
         }
+
+        @Override
         public void actionPerformed(ActionEvent e) {
             perform(p);
         }
+
+        @Override
         public JMenuItem getPopupPresenter() {
             class Presenter extends JMenuItem implements DynamicMenuContent {
                 public Presenter() {
                     super(ContextAction.this);
                 }
+                @Override
                 public JComponent[] getMenuPresenters() {
                     if (p != null) {
                         Mnemonics.setLocalizedText(this, labelFor(p));
@@ -90,6 +103,7 @@ public class RunProjectWithReplContextMenuAction extends AbstractAction implemen
                         return new JComponent[0];
                     }
                 }
+                @Override
                 public JComponent[] synchMenuPresenters(JComponent[] items) {
                     return getMenuPresenters();
                 }

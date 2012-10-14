@@ -13,12 +13,12 @@
    (:import (org.apache.log4j Logger LogManager PropertyConfigurator Level)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(def *context*)
+(def ^:dynamic *context*)
 
 (defmacro with-context [ctx & body]
   `(if org.enclojure.commons.trace/*context*
      (binding [org.enclojure.commons.trace/*context*
-               (conj org.enclojure.commons.trace/*context* {:context ~ctx :body '~body})]       
+               (conj org.enclojure.commons.trace/*context* {:context ~ctx :body '~body})]
        ~@body)
      ~@body))
 
@@ -30,7 +30,7 @@
            (binding [org.enclojure.commons.trace/*context*
                      (conj org.enclojure.commons.trace/*context*
                        (assoc m# :ns (.getName (:ns m#))) {:args args# :body '~body})]
-             (try               
+             (try
                (apply f# args#)
                (catch Throwable e#
                  (throw (Exception. (pr-str org.enclojure.commons.trace/*context*) e#))))))
@@ -80,10 +80,10 @@
 
 ;The exact default initialization algorithm is defined as follows:
 ;
-;   1. Setting the log4j.defaultInitOverride system property to any other value 
+;   1. Setting the log4j.defaultInitOverride system property to any other value
 ;      then "false" will cause log4j to skip the default initialization procedure
 ;      (this procedure).
-;   2. Set the resource string variable to the value of the log4j.configuration 
+;   2. Set the resource string variable to the value of the log4j.configuration
 ;      system property. The preferred way to specify the default initialization
 ;      file is through the log4j.configuration system property. In case the
 ;      system property log4j.configuration is not defined, then set the string

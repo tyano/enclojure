@@ -20,7 +20,6 @@ package org.enclojure.ide.nb.clojure.project;
 
 import java.io.File;
 import java.io.IOException;
-import javax.swing.JFileChooser;
 import org.enclojure.ide.core.LogAdapter;
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
@@ -31,14 +30,20 @@ import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.filesystems.FileUtil;
 import clojure.lang.*;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.openide.util.Exceptions;
 
 public class ClojureTemplatePanelVisual extends JPanel implements DocumentListener {
 
     private static final LogAdapter LOG = new LogAdapter(ClojureTemplatePanelVisual.class.getName());
 
+    static {
+        SourceLoader.loadProjectCreate();
+    }
+
     public static final IFn selectLocationFn =
             (IFn)RT.var("org.enclojure.ide.nb.clojure.project.create", "select-location");
+
     public static final String PROP_PROJECT_NAME = "projectName";
 
     private ClojureTemplateWizardPanel panel;

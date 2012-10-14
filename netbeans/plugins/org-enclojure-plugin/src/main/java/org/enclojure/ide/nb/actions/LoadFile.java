@@ -18,7 +18,6 @@
 */
 package org.enclojure.ide.nb.actions;
 
-import org.enclojure.ide.nb.editor.ReplTopComponent;
 import org.openide.cookies.EditCookie;
 import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
@@ -27,15 +26,15 @@ import org.openide.util.NbBundle;
 import org.openide.util.actions.CookieAction;
 import clojure.lang.RT;
 import clojure.lang.Var;
-import org.openide.windows.TopComponent;
-import org.openide.cookies.EditorCookie;
-import javax.swing.JEditorPane;
-import org.netbeans.api.project.Project;
 
 public final class LoadFile extends CookieAction {
 
+    static {
+        SourceLoader.loadActionHandler();
+    }
     final Var loadFileFn = RT.var("org.enclojure.ide.nb.actions.action-handler", "load-file-action");
 
+    @Override
     protected void performAction(Node[] activatedNodes) {
         try {
             loadFileFn.invoke(activatedNodes);
@@ -44,16 +43,19 @@ public final class LoadFile extends CookieAction {
         }
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_EXACTLY_ONE;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(LoadFile.class, "CTL_LoadFile");
     }
 
-    protected Class[] cookieClasses() {
-        return new Class[]{EditCookie.class};
+    @Override
+    protected Class<?>[] cookieClasses() {
+        return new Class<?>[]{EditCookie.class};
     }
 
     @Override
@@ -63,6 +65,7 @@ public final class LoadFile extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

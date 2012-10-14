@@ -46,20 +46,22 @@ import clojure.lang.RT;
 import clojure.lang.Var;
 import clojure.lang.Symbol;
 import clojure.lang.PersistentArrayMap;
-import java.awt.Container;
 import java.util.Iterator;
 import java.util.ArrayList;
 import javax.swing.JOptionPane;
-import javax.swing.JViewport;
-import org.openide.util.Exceptions;
 import java.util.logging.Level;
 import org.enclojure.ide.core.LogAdapter;
+import org.enclojure.ide.nb.actions.SourceLoader;
 
 
 @SuppressWarnings("unchecked") 
 public class ClojureCodeCompletionItem implements CompletionItem {
 
     private static final LogAdapter LOG = new LogAdapter(ClojureCodeCompletionItem.class.getName());
+
+    static {
+        SourceLoader.loadCljCodeCompletion();
+    }
 
     final static Var getalljavaclassesfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-all-java-classes-with-ns");
     final static Var getallclojurenamespacesfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-all-clojure-namespaces-within-nsnode");
@@ -557,11 +559,13 @@ public class ClojureCodeCompletionItem implements CompletionItem {
 
     }
 
+    @Override
     public void defaultAction(JTextComponent jTextComponent) {
         Completion.get().hideAll();
         doSubstitute(jTextComponent, null, 0);
     }
 
+    @Override
     public void processKeyEvent(KeyEvent arg0) {
 
 //        boolean blnShift =arg0.isShiftDown();
@@ -570,55 +574,64 @@ public class ClojureCodeCompletionItem implements CompletionItem {
 
     }
 
+    @Override
     public int getPreferredWidth(Graphics graphics, Font font) {
          return CompletionUtilities.getPreferredWidth(encodeHTML(_text), null, graphics, font);
     }
 
+    @Override
     public void render(Graphics g, Font defaultFont, Color defaultColor, Color backgroundColor, int width,
             int height, boolean selected) {
         CompletionUtilities.renderHtml(_icon, encodeHTML(_text), null, g, defaultFont,
             (selected ? Color.white : fieldColor), width, height, selected);
     }
 
+    @Override
     public CompletionTask createDocumentationTask() {
 
         //return null;
 
         return new AsyncCompletionTask( new AsyncCompletionQuery() {
 
-        protected void query(CompletionResultSet completionResultSet, Document document, int i)
-        {
-           completionResultSet.setDocumentation(new ClojureCodeCompletionDocumentation(ClojureCodeCompletionItem.this));
-           completionResultSet.finish();
-        }
+            @Override
+            protected void query(CompletionResultSet completionResultSet, Document document, int i)
+            {
+               completionResultSet.setDocumentation(new ClojureCodeCompletionDocumentation(ClojureCodeCompletionItem.this));
+               completionResultSet.finish();
+            }
 
         });
 
     }
 
+    @Override
     public CompletionTask createToolTipTask() {
         return null;
     }
 
+    @Override
     public boolean instantSubstitution(JTextComponent arg0) {
         return false;
     }
 
+    @Override
     public int getSortPriority() {
         return _priority;
     }
 
+    @Override
     public CharSequence getSortText() {
         return getText();
     }
 
+    @Override
     public CharSequence getInsertPrefix() {
         return getText();
     }
 
     public static String encodeHTML(String s)
 {
-    StringBuffer out = new StringBuffer();
+    StringBuilder out = new StringBuilder();
     for(int i=0; i<s.length(); i++)
     {
         char c = s.charAt(i);

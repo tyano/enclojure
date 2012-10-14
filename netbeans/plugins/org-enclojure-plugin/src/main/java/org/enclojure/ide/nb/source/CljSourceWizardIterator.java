@@ -15,11 +15,11 @@ import java.util.logging.Level;
 import org.enclojure.ide.core.LogAdapter;
 import javax.swing.JComponent;
 import javax.swing.event.ChangeListener;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.netbeans.api.java.project.JavaProjectConstants;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
-import org.netbeans.spi.java.project.support.ui.templates.JavaTemplates;
 import org.netbeans.spi.project.ui.templates.support.Templates;
 import org.openide.WizardDescriptor;
 import org.openide.util.Exceptions;
@@ -27,7 +27,11 @@ import org.openide.util.Exceptions;
 public final class CljSourceWizardIterator implements WizardDescriptor.InstantiatingIterator {
 
     private static final LogAdapter LOG = new LogAdapter(CljSourceWizardIterator.class.getName());
-    
+
+    static {
+        SourceLoader.loadAddFile();
+    }
+
     private int index;
     private WizardDescriptor wizard;
     private WizardDescriptor.Panel[] panels;

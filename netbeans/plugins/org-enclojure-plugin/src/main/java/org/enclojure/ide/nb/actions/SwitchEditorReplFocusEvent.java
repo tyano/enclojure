@@ -12,9 +12,14 @@ import org.openide.util.Exceptions;
 
 public final class SwitchEditorReplFocusEvent implements ActionListener {
 
-    static final Var switchReplFocusFn =
-        RT.var("org.enclojure.ide.nb.actions.action-handler", "switch-repl-focus-action");
+    static {
+        SourceLoader.loadActionHandler();
+    }
 
+    static final Var switchReplFocusFn =
+            RT.var("org.enclojure.ide.nb.actions.action-handler", "switch-repl-focus-action");
+
+    @Override
     public void actionPerformed(ActionEvent e) {
         try {
             switchReplFocusFn.invoke();

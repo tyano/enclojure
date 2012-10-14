@@ -27,17 +27,15 @@ import org.netbeans.spi.editor.completion.CompletionDocumentation;
 import clojure.lang.RT;
 import clojure.lang.Var;
 import clojure.lang.Symbol;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.openide.util.Exceptions;
 
 @SuppressWarnings("unchecked") 
 public class ClojureCodeCompletionDocumentation implements CompletionDocumentation {
 
 
-    static {try {
-            RT.var("clojure.core","require").invoke(Symbol.create("org.enclojure.ide.nb.editor.completion.cljcodecompletion"));
-        } catch (Throwable ex) {
-            Exceptions.printStackTrace(ex);
-        }
+    static {
+        SourceLoader.loadCljCodeCompletion();
     }
 
     final static Var getdocs = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-clojure-docs");

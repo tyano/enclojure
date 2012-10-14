@@ -15,13 +15,14 @@
    :methods [ #^{:static true} [getToken [java.io.Reader] clojure.lang.PersistentHashMap] ])
   (:require
     [org.enclojure.commons.c-slf4j :as logger]
+    [clojure.set]
     )
   )
 
 ; setup logging
 (logger/ensure-logger)
 
-(def *token-stack* (atom []))
+(def ^:dynamic *token-stack* (atom []))
 
 ;get a list of exceptions associated with exc
 (defn get-exc-seq [exc]
@@ -33,8 +34,8 @@
 ;concatenate the result func for each and its causes
 (defn get-exc-info [exc func]
   (reduce str (map (fn [e]
-		       (str (func e) "\n"))
-		   (get-exc-seq exc))))
+           (str (func e) "\n"))
+       (get-exc-seq exc))))
 
 ;get a formatted message for exc
 (defn get-exc-msg [exc]
@@ -116,46 +117,46 @@
 
 (defn read-unicode-char [rdr initch base len exact?]
   (let [uc (Character/digit initch base)
-	_ (when (= -1 uc)
-	    (throw (IllegalArgumentException. (str "Invalid digit: " initch))))
-	i 1]
+  _ (when (= -1 uc)
+      (throw (IllegalArgumentException. (str "Invalid digit: " initch))))
+  i 1]
     (loop [i i
-	   uc uc]
+     uc uc]
       (when (< len i)
-	(let [ch (.read rdr)]
-	  (if (or (eof? ch)
-		  (whitespace? (char ch))
-		  (terminating? (char ch)))
-	    (do (unread rdr ch) (recur len uc))
-	    (let [d (Character/digit ch base)
-		  _ (when (= -1 d)
-		      (throw (IllegalArgumentException. (str "Invalid digit: " initch))))]
-	      (recur (inc i) (+ d (* uc base))))))))
+  (let [ch (.read rdr)]
+    (if (or (eof? ch)
+      (whitespace? (char ch))
+      (terminating? (char ch)))
+      (do (unread rdr ch) (recur len uc))
+      (let [d (Character/digit ch base)
+      _ (when (= -1 d)
+          (throw (IllegalArgumentException. (str "Invalid digit: " initch))))]
+        (recur (inc i) (+ d (* uc base))))))))
     (when (and exact? (not (= len i)))
       (throw (IllegalArgumentException. (str "Invalid character length: " i ", should be: " len))))
     uc))
 
 ;(defn read-unicode-char-token [token offset len base])
 ;static private int readUnicodeChar(String token, int offset, int length, int base) throws Exception{
-;	if(token.length() != offset + length)
-;		throw new IllegalArgumentException("Invalid unicode character: \\" + token);
-;	int uc = 0;
-;	for(int i = offset; i < offset + length; ++i)
-;		{
-;		int d = Character.digit(token.charAt(i), base);
-;		if(d == -1)
-;			throw new IllegalArgumentException("Invalid digit: " + (char) d);
-;		uc = uc * base + d;
-;		}
-;	return (char) uc;
+;  if(token.length() != offset + length)
+;    throw new IllegalArgumentException("Invalid unicode character: \\" + token);
+;  int uc = 0;
+;  for(int i = offset; i < offset + length; ++i)
+;    {
+;    int d = Character.digit(token.charAt(i), base);
+;    if(d == -1)
+;      throw new IllegalArgumentException("Invalid digit: " + (char) d);
+;    uc = uc * base + d;
+;    }
+;  return (char) uc;
 ;}
 
 (defn read-unicode-char-token [token offset len base])
 ;  (logger/info "token {} offset {} len {}" token offset len)
-;	(when (not= (.length token) (+ offset len))
-;   		(throw (IllegalArgumentException.
+;  (when (not= (.length token) (+ offset len))
+;       (throw (IllegalArgumentException.
 ;                        (str "Invalid unicode character: \\"  token))))
-;	(loop [uc 0 i offset]
+;  (loop [uc 0 i offset]
 ;            (if (< i (+ offset len))
 ;              (let [d (Character/digit (.charAt token i) base)]
 ;                (when (= -1 (int d))
@@ -179,32 +180,32 @@
 
 (defn char-token [rdr backslash]
   (let [ch (.read rdr)
-	sb (StringBuilder.)]
+  sb (StringBuilder.)]
     (when-not (eof? ch)
       (let [tk (read-char-token rdr ch)]
-	    (cond
-	     (= 1 (.length tk)) (.append sb tk)
-	     (= "newline" tk) (.append sb "\n")
-	     (= "space" tk) (.append sb " ")
-	     (= "tab" tk) (.append sb "\t")
+      (cond
+       (= 1 (.length tk)) (.append sb tk)
+       (= "newline" tk) (.append sb "\n")
+       (= "space" tk) (.append sb " ")
+       (= "tab" tk) (.append sb "\t")
              (= "backspace" tk) (.append sb "\b")
-	     (= "formfeed" tk) (.append sb "\f")
+       (= "formfeed" tk) (.append sb "\f")
              (= "return" tk) (.append sb "\r")
-	     (.startsWith tk "u")
+       (.startsWith tk "u")
                 (let [ch (read-unicode-char-token tk 1 4 16)]
                   (logger/info "char is {}" ch)
                     (if (and (>= ch 0xD800)
                             (<= ch 0xDFFF))  ;surrogate code unit?
-                	  (throw (Exception. (str "Invalid character constant: \\u"  (Integer/toString (char ch) 16)))))
-      		  (.append sb (char ch)))
-    	 (.startsWith tk "o")
+                    (throw (Exception. (str "Invalid character constant: \\u"  (Integer/toString (char ch) 16)))))
+            (.append sb (char ch)))
+       (.startsWith tk "o")
             (let [len (dec (.length tk))
-	    			    _ (when (> 3 len)
-	    				(throw (Exception. (str "Invalid octal escape sequence length: " len))))
-	    			    uc (read-unicode-char-token tk 1 len 8)]
-	    			(when (> uc 0377)
-	    			  (throw (Exception. "Octal escape sequence must be in range [0, 377].")))
-	    			(char uc)))))
+                _ (when (> 3 len)
+              (throw (Exception. (str "Invalid octal escape sequence length: " len))))
+                uc (read-unicode-char-token tk 1 len 8)]
+            (when (> uc 0377)
+              (throw (Exception. "Octal escape sequence must be in range [0, 377].")))
+            (char uc)))))
     {:type :char :token (str sb)}))
 
 (defn string-token [rdr double-quote]
@@ -215,27 +216,27 @@
        (eof? ch) nil
        (= (char ch) \\)
        (let [ch (.read rdr)]
-	 (when-not (eof? ch)
-	   (.append sb
-		    (or (escape-chars (char ch))
-			(cond
-			 (= (char ch) \u)
-			 (do (let [ch (.read rdr)]
-			       (if (= -1 (Character/digit ch 16))
-				 (throw (Exception. (str "Invalid unicode escape: \\u" (char ch))))
-				 (read-unicode-char rdr ch 16 4 true))))
-			 (Character/isDigit ch)
-			 (let [ch (read-unicode-char rdr ch 8 3 false)]
-			   (if (> ch 0377)
-			     (throw (Exception. "Octal escape sequence must be in range [0, 377]."))
-			     (char ch)))
+   (when-not (eof? ch)
+     (.append sb
+        (or (escape-chars (char ch))
+      (cond
+       (= (char ch) \u)
+       (do (let [ch (.read rdr)]
+             (if (= -1 (Character/digit ch 16))
+         (throw (Exception. (str "Invalid unicode escape: \\u" (char ch))))
+         (read-unicode-char rdr ch 16 4 true))))
+       (Character/isDigit ch)
+       (let [ch (read-unicode-char rdr ch 8 3 false)]
+         (if (> ch 0377)
+           (throw (Exception. "Octal escape sequence must be in range [0, 377]."))
+           (char ch)))
              ;:else
-			 ;(throw (Exception. (str "Unsupported escape character: \\" (char ch))))
+       ;(throw (Exception. (str "Unsupported escape character: \\" (char ch))))
      )))
-	   (recur (.read rdr))))
+     (recur (.read rdr))))
        :else (do (.append sb (char ch))
-		 (when-not (= (char ch) \")
-		   (recur (.read rdr))))))
+     (when-not (= (char ch) \")
+       (recur (.read rdr))))))
     {:type :string :token (str sb)}))
 
 ;will be used in the future :)
@@ -304,12 +305,12 @@
     (.append sb ch)
     (loop [ch (.read rdr)]
       (if (or (eof? ch) (whitespace? (char ch)) (terminating? (char ch)))
-	(do
-	  (unread rdr ch)
-	  (get-word-type (str sb)))
-	(do
-	  (.append sb (char ch))
-	  (recur (.read rdr)))))))
+  (do
+    (unread rdr ch)
+    (get-word-type (str sb)))
+  (do
+    (.append sb (char ch))
+    (recur (.read rdr)))))))
 
 (defn read-token [rdr ch]
   (let [f (read-table ch)]
@@ -322,9 +323,9 @@
   (let [ch (.read rdr)]
     (when-not (eof? ch)
       (let [ch (char ch)]
-	(if (whitespace? ch)
-	  (recur rdr)
-	  (read-token rdr ch))))))
+  (if (whitespace? ch)
+    (recur rdr)
+    (read-token rdr ch))))))
 
 (defn- -getToken [this rdr]
   ;(binding [*token-stack* (swap! *token-stack* vector)]
@@ -332,7 +333,7 @@
 
 (defn get-all-tokens [rdr]
   (loop [ret []
-	 t (org.enclojure.ide.lexer/get-token rdr)]
+   t (org.enclojure.ide.lexer/get-token rdr)]
     (if t
       (recur (conj ret t) (org.enclojure.ide.lexer/get-token rdr) )
       ret)))

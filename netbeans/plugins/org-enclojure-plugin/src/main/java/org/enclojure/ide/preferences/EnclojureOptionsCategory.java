@@ -10,6 +10,7 @@ import javax.swing.ImageIcon;
 import org.netbeans.spi.options.OptionsCategory;
 import org.netbeans.spi.options.OptionsPanelController;
 import clojure.lang.*;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 /*
@@ -39,7 +40,12 @@ import org.openide.util.NbBundle;
 public class EnclojureOptionsCategory extends OptionsCategory {
  public static final String PATH_IN_LAYER = "org-enclojure-ide-preferences-EnclojureOptionsCategory"; //NOI18N
 
-    Var getOptionsControllerFunc = RT.var("org.enclojure.ide.preferences.enclojure-options-category", "get-options-controller");
+    static {
+        SourceLoader.loadEnclojureOptionsCategory();
+    }
+    static final IFn tabbedStateChangedFn = RT.var("org.enclojure.ide.preferences.enclojure-options-category","tabbed-panel-changed");
+    static final Var getOptionsControllerFunc = RT.var("org.enclojure.ide.preferences.enclojure-options-category", "get-options-controller");
+
     ImageIcon icon = null;
 
     static public OptionsCategory createCategory()
@@ -68,12 +74,20 @@ public class EnclojureOptionsCategory extends OptionsCategory {
     }
 
     @Override
-    public OptionsPanelController create() {        
+    public OptionsPanelController create() {
         try {
             return (OptionsPanelController) this.getOptionsControllerFunc.invoke();
         } catch (Exception ex) {
             Exceptions.printStackTrace(ex);
         }
         return null;
+    }
+
+    public static void tabbedStateChanged(Object owner, javax.swing.event.ChangeEvent evt) {
+        try {
+            tabbedStateChangedFn.invoke(owner, evt);
+        } catch (Exception ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 }

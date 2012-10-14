@@ -15,8 +15,13 @@ import org.openide.util.Exceptions;
 
 public final class UseFileNSInReplAction extends CookieAction {
 
-    final Var loadNamespaceFn = RT.var("org.enclojure.ide.nb.actions.action-handler", "require-file-ns-action");
+    static {
+        SourceLoader.loadActionHandler();
+    }
 
+    static final Var loadNamespaceFn = RT.var("org.enclojure.ide.nb.actions.action-handler", "require-file-ns-action");
+
+    @Override
     protected void performAction(Node[] activatedNodes) {
         try {
             loadNamespaceFn.invoke(activatedNodes);
@@ -25,16 +30,19 @@ public final class UseFileNSInReplAction extends CookieAction {
         }
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_EXACTLY_ONE;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(ChangeReplNamespaceAction.class, "CTL_UseFileNSInReplAction");
     }
 
+    @Override
     protected Class[] cookieClasses() {
-        return new Class[]{EditorCookie.class};
+        return new Class<?>[]{EditorCookie.class};
     }
 
     @Override
@@ -44,6 +52,7 @@ public final class UseFileNSInReplAction extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

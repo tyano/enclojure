@@ -43,6 +43,7 @@ import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.api.editor.mimelookup.MimePath;
 import org.openide.util.Lookup;
 import java.util.prefs.Preferences;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.netbeans.api.editor.settings.SimpleValueNames;
 
 /**
@@ -65,11 +66,15 @@ final public class ReplTopComponent extends TopComponent {
     private String _projectName;
     private Boolean _debugging = false;
 
+    static {
+        SourceLoader.loadReplWin();
+    }
+
     static final Var stopProjectReplFn =
       RT.var("org.enclojure.ide.nb.editor.repl-win", "stop-project-repl");
 
     static final Var setCaretVisibilityFn =
-      RT.var("org.enclojure.ide.nb.editor.repl-focus", "set-caret-visibility");
+      RT.var("org.enclojure.ide.nb.editor.repl-win", "set-caret-visibility");
 
     static final Var replFocusFn =
       RT.var("org.enclojure.ide.nb.editor.repl-win", "repl-focus");
@@ -209,7 +214,7 @@ final public class ReplTopComponent extends TopComponent {
     {
         try {
             setCaretVisibilityFn.invoke(_projectName, this._replPanel.GetEditorPane(), true);
-            this.replFocusFn.invoke(this);
+            replFocusFn.invoke(this);
         } catch (Exception ex) {
             Exceptions.printStackTrace(ex);
         }

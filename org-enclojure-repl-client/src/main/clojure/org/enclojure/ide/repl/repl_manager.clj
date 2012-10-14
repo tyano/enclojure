@@ -63,14 +63,14 @@ Sets the validator function to ensure this is usable within the rest of the fram
     :validator #(validation/validate %1
                   repl-data/-repl-context-validation-)))
 
-(defn register-repl 
+(defn register-repl
   "Register a new repl using the repl-id as the key.  repl-config is a map. See
 org.enclojure.ide.repl.repl-data for more info"
   [repl-id repl-config]
   (assert (map? repl-config))
   (dosync
     (commute -running-repls- assoc repl-id
-      (new-repl-data-ref 
+      (new-repl-data-ref
         (merge repl-data/-default-repl-data- repl-config)))))
       ;(ref (merge default-repl-config repl-config)))))
 
@@ -97,7 +97,7 @@ org.enclojure.ide.repl.repl-data for more info"
     (if-let [config-ref (@-running-repls- repl-id)]
       (apply update-repl repl-id kv-pairs)
       (register-repl repl-id (apply hash-map kv-pairs))))
-     
+
 (defn get-classpath [repl-id]
   (when-let [classpath (:classpath (get-repl-config repl-id))]
     (apply str (interpose java.io.File/pathSeparator (distinct (.split classpath java.io.File/pathSeparator))))))
@@ -120,19 +120,23 @@ org.enclojure.ide.repl.repl-data for more info"
 (defn await-till
   "Wait for timeout-ms to see if the test passes."
   [pred timeout-ms]
-  (let [test-thread (Thread. #(try
-                                (when-not (Thread/interrupted)
-                                  (when-not (pred)
-                                    (Thread/yield)
-                                    (recur)))
-                                (catch Throwable t
-                                  (logger/info  (.getMessage t)))))]
+  (let [f (fn []
+            (let [r (try
+                      (when-not (Thread/interrupted)
+                        (when-not (pred)
+                          (Thread/yield)
+                          true))
+                      (catch Throwable t
+                        (logger/info  (.getMessage t))
+                        false))]
+              (if r (recur))))
+        test-thread (Thread. f)]
     (.start test-thread)
     (.join test-thread timeout-ms)
     (when (.isAlive test-thread)
       (.interrupt test-thread))
     (pred)))
-    
+
 (defn java-cmd-array
   "takes a map which looks like @*default-config* and creates a java array to be used in the ProcessBuilder later on.
 For seeing the command line use:"
@@ -144,21 +148,21 @@ For seeing the command line use:"
       (filter identity [debug-port-arg "-cp" (if classpath (str "\"" classpath "\"") "")
                         java-main (str "\"" repl-id "\"") port ack-port]))))
 
-(defn launch-java-process 
-  "This function launches a java process using the Apache exec lib for starting a 
+(defn launch-java-process
+  "This function launches a java process using the Apache exec lib for starting a
     repl-server.  There are four arguments:
-  repl-config -> A map with a set of startup options for the java process.  
+  repl-config -> A map with a set of startup options for the java process.
                  These should include:
                  :java-exe -> java executable (defaults to java)
-                 :jvm-additional-args -> startup arguments for the java 
+                 :jvm-additional-args -> startup arguments for the java
                  :debug-port-arg -> port to use for the debugger
                  :classpath -> classpath for -cp arg
                  :java-main -> class for startup
                  :repl-id -> a string identifier for the repl
-                 :port  -> socket port to listen for repl command 
+                 :port  -> socket port to listen for repl command
                             (0 will use next available port)
                  :ack-port -> Acknowledgement port for the starting
-                            process to listen on to ensure the remote repl server 
+                            process to listen on to ensure the remote repl server
                             has successfully started.
   complete-fn -> Single arg function taking an int that gets called when the external
                 repl server successfully shutdown.
@@ -231,7 +235,7 @@ For seeing the command line use:"
             (create-repl-client-with-back-channel "127.0.0.1" port)]
         (repl-monitor-fn repl-fn result-fn)
         (update-repl repl-id :repl-fn repl-fn :close-fn close-fn :connected true))
-      (throw (Exception. 
+      (throw (Exception.
                (str "Timeout expired - could not create repl " repl-id
                  " Check *err* pane for additional info "
                  "\n\tconfig settings "

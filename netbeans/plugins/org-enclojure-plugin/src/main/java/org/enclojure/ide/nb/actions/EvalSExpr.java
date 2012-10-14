@@ -28,9 +28,15 @@ import clojure.lang.RT;
 import clojure.lang.Var;
 
 public final class EvalSExpr extends CookieAction {
-   static final Var evalExprFn =
+    private static final long serialVersionUID = 1L;
+
+    static {
+        SourceLoader.loadActionHandler();
+    }
+    static final Var evalExprFn =
           RT.var("org.enclojure.ide.nb.actions.action-handler", "eval-expr-action");
 
+    @Override
     protected void performAction(Node[] activatedNodes) {
         try {
             evalExprFn.invoke(activatedNodes);

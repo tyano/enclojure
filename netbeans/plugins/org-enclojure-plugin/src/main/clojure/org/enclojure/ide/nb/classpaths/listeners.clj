@@ -28,42 +28,16 @@
     [org.enclojure.ide.analyze.files :as analyze.files]
     )
   (:import
-    (org.netbeans.api.java.classpath ClassPath GlobalPathRegistry
-             GlobalPathRegistryEvent GlobalPathRegistryListener)
-    (clojure.lang LineNumberingPushbackReader)
-    (clojure.asm Opcodes)
-    (org.netbeans.modules.java.classpath ClassPathAccessor)
-    (java.lang ExceptionInInitializerError)
-    (java.util.logging Level)
-    (java.util.concurrent LinkedBlockingQueue CountDownLatch
-      Executors ExecutorService TimeUnit ExecutorCompletionService)
-    (org.openide.util WeakListeners)
-    (org.netbeans.api.java.platform JavaPlatform)
-    (org.netbeans.api.java.queries SourceForBinaryQuery)
-    (org.netbeans.api.project Project ProjectUtils SourceGroup)
+    (java.util.concurrent LinkedBlockingQueue Executors ExecutorCompletionService)
+    (org.netbeans.api.project Project)
     (org.netbeans.api.java.classpath
             ClassPath
             ClassPath$Entry
             GlobalPathRegistryEvent
             GlobalPathRegistry
             GlobalPathRegistryListener)
-    (org.netbeans.editor BaseDocument)
-    (org.netbeans.modules.editor NbEditorUtilities)
-    (org.netbeans.spi.java.classpath.support ClassPathSupport)
-    (org.netbeans.api.java.platform JavaPlatformManager)
-    (org.netbeans.api.java.project JavaProjectConstants)
-    (org.netbeans.api.lexer TokenHierarchy TokenSequence Token)
-    (org.enclojure.ide.asm ClassReader ClassVisitor Type)
-    (org.enclojure.ide.asm.tree ClassNode)
-    (java.io StringReader)
-    (java.util Calendar)
-    (java.lang.StringBuilder)
-    (java.util.jar JarFile$JarFileEntry JarFile JarEntry)
-    (org.openide.filesystems FileObject FileStateInvalidException
-      FileUtil JarFileSystem URLMapper)
-    (java.io File FileWriter IOException StringReader StringWriter
-      PrintStream PrintWriter OutputStream ByteArrayOutputStream)
-    ;(com.sun.jdi VirtualMachine VirtualMachineManager ReferenceType ClassType)
+    (org.openide.filesystems FileObject)
+    (java.io StringWriter PrintWriter)
     ))
 
 ; setup logging

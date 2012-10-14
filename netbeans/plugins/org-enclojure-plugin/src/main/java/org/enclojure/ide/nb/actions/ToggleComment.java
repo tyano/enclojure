@@ -29,8 +29,13 @@ import clojure.lang.RT;
 import clojure.lang.Var;
 
 public final class ToggleComment extends CookieAction {
+    static {
+        SourceLoader.loadCljComment();
+    }
 
-    final Var toggleCommentFn = RT.var("org.enclojure.ide.nb.actions.CljComment", "perform-action");
+    static final Var toggleCommentFn = RT.var("org.enclojure.ide.nb.actions.CljComment", "perform-action");
+    
+    @Override
     protected void performAction(Node[] activatedNodes) {
         try {
             EditorCookie editCookie = activatedNodes[0].getLookup().lookup(EditorCookie.class);
@@ -40,16 +45,19 @@ public final class ToggleComment extends CookieAction {
         }
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_EXACTLY_ONE;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(ToggleComment.class, "CTL_ToggleComment");
     }
 
-    protected Class[] cookieClasses() {
-        return new Class[]{EditCookie.class};
+    @Override
+    protected Class<?>[] cookieClasses() {
+        return new Class<?>[]{EditCookie.class};
     }
 
     @Override
@@ -59,6 +67,7 @@ public final class ToggleComment extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

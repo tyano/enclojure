@@ -29,7 +29,7 @@
     (java.util Collection)
     (java.io StringReader)
     (javax.swing JToolTip ImageIcon)
-    (javax.swing.text JTextComponent)
+    (javax.swing.text JTextComponent Document)
     (java.awt.event ActionEvent KeyEvent KeyListener InputEvent ComponentEvent)
     (java.awt Color Graphics Font AWTEvent))
   (:require
@@ -77,13 +77,13 @@
   (str name "\t\t\t" arglists))
 
 
-(defn insert-text-generic [#^JTextComponent component 
+(defn insert-text-generic [#^JTextComponent component
                            input-item
                            search-info
                            new-string]
   (let [{:keys [start end length]} input-item]
     (.remove (.getDocument component) start length)
-    (.insertString (.getDocument component) start 
+    (.insertString (.getDocument component) start
       (str (:prepend-text search-info)
                      (:search-scope search-info)
                      (:search-delim search-info) new-string) nil)))
@@ -162,7 +162,7 @@
       (get-doc-str tag))
     (createToolTipTask []
       (get-tool-tip tag))
-    (defaultAction [#^JTextComponent component]      
+    (defaultAction [#^JTextComponent component]
             ;final-text (get-final-text item search-info)
             (insert-text-inplace component item search-info))
     (getInsertPrefix [] text)
@@ -173,14 +173,14 @@
            g font))
     (getSortPriority [] 1)
     (getSortText [] #^CharSequence (str text))
-    (instantSubstitution [#^JTextComponent component] 
+    (instantSubstitution [#^JTextComponent component]
       (logger/info "Completion: instantSubstitution.")
       (.defaultAction this component)
       (accept-and-close item search-info)
       true)
     (processKeyEvent [#^KeyEvent evt]
       (logger/info "keyevent code {} instant {}" (.getKeyCode evt) instant-sub)
-      (if instant-sub 
+      (if instant-sub
          (do
            (.consume evt)
            (.defaultAction this (:text-component search-info))
@@ -191,7 +191,7 @@
                 (do
                   (.consume evt)
                   (if (not is-alt)
-                    (do                      
+                    (do
                         (.defaultAction this (:text-component search-info))
                         (accept-and-close item search-info))))))))
                 ; Continued search

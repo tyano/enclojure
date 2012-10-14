@@ -14,9 +14,16 @@ import org.openide.util.NbBundle;
 import org.openide.util.actions.CookieAction;
 
 public final class EvalExpressionInReplAction extends CookieAction {
-   static final Var evalExprFn =
+    private static final long serialVersionUID = 1L;
+
+    static {
+        SourceLoader.loadActionHandler();
+    }
+    static final Var evalExprFn =
           RT.var("org.enclojure.ide.nb.actions.action-handler", "paste-eval-expr-action");
 
+
+    @Override
     protected void performAction(Node[] activatedNodes) {
             try {
             evalExprFn.invoke(activatedNodes);
@@ -25,16 +32,19 @@ public final class EvalExpressionInReplAction extends CookieAction {
         }
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_EXACTLY_ONE;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(EvalExpressionInReplAction.class, "CTL_EvalExpressionInReplAction");
     }
 
-    protected Class[] cookieClasses() {
-        return new Class[]{EditorCookie.class};
+    @Override
+    protected Class<?>[] cookieClasses() {
+        return new Class<?>[]{EditorCookie.class};
     }
 
     @Override
@@ -44,6 +54,7 @@ public final class EvalExpressionInReplAction extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

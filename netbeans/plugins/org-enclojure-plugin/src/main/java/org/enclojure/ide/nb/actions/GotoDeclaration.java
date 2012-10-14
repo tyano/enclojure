@@ -29,8 +29,14 @@ import clojure.lang.RT;
 import clojure.lang.Var;
 
 public final class GotoDeclaration extends CookieAction {
+    private static final long serialVersionUID = 1L;
 
+    static {
+        SourceLoader.loadActionHandler();
+    }
     final Var gotoDeclarationFn = RT.var("org.enclojure.ide.nb.actions.action-handler", "goto-declaration-action");
+
+    @Override
     protected void performAction(Node[] activatedNodes) {
         try {
             EditorCookie editCookie = activatedNodes[0].getLookup().lookup(EditorCookie.class);
@@ -40,16 +46,19 @@ public final class GotoDeclaration extends CookieAction {
         }
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_EXACTLY_ONE;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(ToggleComment.class, "CTL_GotoDeclaration");
     }
 
-    protected Class[] cookieClasses() {
-        return new Class[]{EditCookie.class};
+    @Override
+    protected Class<?>[] cookieClasses() {
+        return new Class<?>[]{EditCookie.class};
     }
 
     @Override
@@ -59,6 +68,7 @@ public final class GotoDeclaration extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

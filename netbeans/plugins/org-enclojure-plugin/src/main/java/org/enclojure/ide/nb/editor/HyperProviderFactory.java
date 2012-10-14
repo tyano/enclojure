@@ -22,6 +22,7 @@ package org.enclojure.ide.nb.editor;
 import org.netbeans.lib.editor.hyperlink.spi.HyperlinkProvider;
 import clojure.lang.RT;
 import clojure.lang.IFn;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.openide.util.Exceptions;
 
 /**
@@ -29,8 +30,12 @@ import org.openide.util.Exceptions;
  * @author ericthorsen
  */
 public class HyperProviderFactory {
+    static {
+        SourceLoader.loadHyperLinks();
+    }
     static final IFn createFn = (IFn)RT.var("org.enclojure.ide.nb.editor.hyperlinks"
                                             ,"get-hyperlink-provider-func");
+
     static public HyperlinkProvider create ()
     {
         try {

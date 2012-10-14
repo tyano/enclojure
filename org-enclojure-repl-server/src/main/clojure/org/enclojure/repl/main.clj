@@ -12,7 +12,7 @@
  )
 
 (ns #^{:author "Eric Thorsen, Narayan Singhal"
-       :doc "This is a socket layer over the REPL in clojure.main.  This can 
+       :doc "This is a socket layer over the REPL in clojure.main.  This can
        be run from a java startup using the launcher class or by calling -main
        using clojure script or within a clojure application.  There is support
        for providing a socket based ack to a process that started the repl-server.
@@ -22,24 +22,23 @@
        socket port.
        Acknowledgment port
        ------------------------------------------------------------------------
-       In cases where you want to be able to be nofified when the repl-server 
+       In cases where you want to be able to be nofified when the repl-server
        has successfully been started up and/or you want to use the next available
        port and need to be notified of what that port was, the Enclojure repl-server
        uses and ack-port to create a repl-client to talk back to the starting process.
        For an example of this see:
        org.enclojure.ide.repl.repl-manager/get-ack-port
        If the ack-port is not provided no acknowledgment will be attempted.
-       If the ack-port is provided a repl-client connection will be made and 
+       If the ack-port is provided a repl-client connection will be made and
        will send a function call to:
        (repl-ack repl-id server-port)
        There is a function:
-       (set-repl-ack-fn ack-fn) 
+       (set-repl-ack-fn ack-fn)
        where you can set the function to be called in your client application.
        "}
   org.enclojure.repl.main
   (:refer-clojure :exclude (with-bindings))
-  (:use clojure.contrib.pprint)
-  (:require [clojure.contrib.pprint :as pprint]
+  (:require [clojure.pprint :refer :all :as pprint]
     [clojure.main :exclude (with-binding)])
   (:import (java.net Socket ServerSocket)
     (java.util.logging Level Logger)
@@ -47,7 +46,7 @@
       PipedReader PipedWriter CharArrayWriter PrintWriter)
     (java.util.concurrent CountDownLatch)))
 
-(def *print-stack-trace-on-error* false)
+(def ^:dynamic *print-stack-trace-on-error* false)
 
 (defn load-string-with-dbg
   "Load a string using the source-path and file name for debug info."
@@ -70,7 +69,7 @@
 
 (defn prn-exception [e]
   "Prints an exception looking for the cause to w"
-;  (.throwing *logger* (str (clojure.core/ns-name clojure.core/*ns*)) "" e)  
+;  (.throwing *logger* (str (clojure.core/ns-name clojure.core/*ns*)) "" e)
   (binding [*err* (if (instance? PrintWriter *err*)
                     *err*
                     (PrintWriter. *err*))]
@@ -88,9 +87,9 @@
     (let [io-thread-fn (fn []
                          (try
                            (io-fn)
-                           (recur)
                            (catch Exception ex
-                             (ex-fn (get-root-cause ex)))))
+                             (ex-fn (get-root-cause ex))))
+                         (recur))
           io-thread (Thread. io-thread-fn)]
       (.start io-thread)
       #(.interrupt io-thread)))
@@ -112,25 +111,25 @@
         piped-in (clojure.lang.LineNumberingPushbackReader. (PipedReader. cmd-wtr))
         piped-out (PrintWriter. (PipedWriter. result-rdr))
         repl-thread-fn #(binding [;*print-base* *print-base* Not in 1.0
-                                  *print-circle* *print-circle*
-                                  *print-length* *print-length*
-                                  *print-level* *print-level*
-                                  *print-lines* *print-lines*  
+                                  ;*print-circle* *print-circle* Not in 1.4.0
+                                  ;*print-length* *print-length* Not in 1.4.0
+                                  ;*print-level* *print-level* Not in 1.4.0
+                                  ;*print-lines* *print-lines* Not in 1.4.0
                                   *print-miser-width* *print-miser-width*
-                                  ;*print-radix* *print-radix* Not in 1.0
+                                  *print-radix* *print-radix*
                                   *print-right-margin* *print-right-margin*
                                   ;*print-shared* *print-shared*  Not in 1.0
                                   *print-suppress-namespaces* *print-suppress-namespaces*
                                   *print-pretty* *print-pretty*
                                   *warn-on-reflection* *warn-on-reflection*
-                                  *print-stack-trace-on-error* *print-stack-trace-on-error*
+                                  ;*print-stack-trace-on-error* *print-stack-trace-on-error* Not in 1.4.0
                                   *in* piped-in
                                   *out* piped-out
                                   *err* (PrintWriter. *out*)]
                           (try
                             (clojure.main/repl
                               :init (fn [] (in-ns 'user))
-                              :read (fn [prompt exit]                                      
+                              :read (fn [prompt exit]
                                       (read))
                               :caught (fn [e]
                                         (when (is-eof-ex? e)
@@ -140,7 +139,7 @@
                                           (prn (clojure.main/repl-exception e)))
                                         (flush))
                               :need-prompt (constantly true)
-                              :print (fn [value]                                        
+                              :print (fn [value]
                                         (set! *3 *2)
                                         (set! *2 *1)
                                         (set! *1 value)
@@ -227,7 +226,7 @@
                    (write-socket socket-out  ":CLOSE-REPL")
                    (.close socket)))}))
 
-(defn create-repl-client-with-back-channel [host port]  
+(defn create-repl-client-with-back-channel [host port]
   (let [primary-client (create-repl-client host port)
         back-channel-client (create-repl-client host port)]
     (assoc primary-client

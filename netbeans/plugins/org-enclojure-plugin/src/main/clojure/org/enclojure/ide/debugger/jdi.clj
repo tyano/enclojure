@@ -21,7 +21,7 @@
 
 (defstruct virtual-machine-manager :vmm :attaching-connectors :listening-connectors)
 
-(def *vmm* (ref nil))
+(def ^:dynamic *vmm* (ref nil))
 
 (defn refresh-vmm []
   "Grab the current virtual-machine-manager and it's connectors"
@@ -56,7 +56,7 @@
 (defn attach-dbg [repl-name port]
   (let [dbg-engines (.startDebugging (DebuggerManager/getDebuggerManager) (get-dbi port))]
     (update-repl repl-name :dbg-engines dbg-engines)))
-    
+
 (defn kill-dbg [repl-name]
   (let [{:keys [dbg-engines]} (get-repl-config repl-name)
         actions-manager (.getActionsManager (first dbg-engines))]

@@ -11,8 +11,12 @@ import java.awt.event.ActionListener;
 import org.openide.util.Exceptions;
 
 public final class CreateStandaloneReplAction implements ActionListener {
+    static {
+        SourceLoader.loadReplWin();
+    }
     IFn startNonProjectREPLFn = RT.var("org.enclojure.ide.nb.editor.repl-win","start-stand-alone-repl-action");
 
+    @Override
     public void actionPerformed(ActionEvent e) {
         try {
             startNonProjectREPLFn.invoke(e);

@@ -12,7 +12,7 @@
 )
 (ns org.enclojure.ide.repl.DefReplWindowFactory
     (:gen-class
-    :implements [org.enclojure.repl.IReplWindowFactory])
+       :implements [org.enclojure.repl.IReplWindowFactory])
     (:import (org.enclojure.repl IReplWindow IReplWindowFactory IRepl)
         (java.io File OutputStreamWriter FileOutputStream)
             (javax.swing JFrame JScrollPane JWindow JPanel)

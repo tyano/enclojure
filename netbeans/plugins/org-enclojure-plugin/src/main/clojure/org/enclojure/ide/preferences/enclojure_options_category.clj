@@ -27,7 +27,6 @@
   (org.netbeans.spi.options OptionsCategory OptionsPanelController)
   (org.openide.util NbBundle Utilities)
   (java.beans PropertyChangeSupport PropertyChangeListener)
-  (org.enclojure.ide.preferences EnclojureOptionsCategory)
   (org.enclojure.ide.preferences EnclojurePreferencesPanel)
   (javax.swing JLabel JFileChooser ListCellRenderer
     DefaultListCellRenderer JComboBox DefaultComboBoxModel)
@@ -43,39 +42,41 @@
 
 (def
    #^{:doc "default binding for the current enclojure preferences"
-      :prefs-category (str *ns*)}
+      :prefs-category (str *ns*)
+      :dynamic true}
    *repl-settings* (ref nil))
 
 (def #^{:private true} -prefs-category- "repl-settings")
 
 (def
-   #^{:doc "hash-map for mapping keys to their associated ui-field-editor-maps"}
-   *edit-map*  
+   #^{:doc "hash-map for mapping keys to their associated ui-field-editor-maps"
+      :dynamic true}
+   *edit-map*
    (controls/build-settings-wrappers
     org.enclojure.ide.preferences.EnclojurePreferencesPanel
      (map #(apply controls/make-field-binding %)
        (partition 3
          [
         'jvmAdditionArgsTextField "-Xms512m -Xmx512m" :jvm-additional-args
-       ; 'printBaseTextField  10   'clojure.contrib.pprint/*print-base*
-        'printCircleCheckBox false 'clojure.contrib.pprint/*print-circle*
+       ; 'printBaseTextField  10   'clojure.pprint/*print-base*
+        ;'printCircleCheckBox false 'clojure.contrib.pprint/*print-circle*
         'printLengthTextField  40 'clojure.core/*print-length*
         'printLevelTextField  4 'clojure.core/*print-level*
-        'printLinesTextField 25 'clojure.contrib.pprint/*print-lines*
-        'printMiserWidthTextField 40 'clojure.contrib.pprint/*print-miser-width*
-        ;'printRadixCheckBox false 'clojure.contrib.pprint/*print-radix*
-        'printRightMarginTextField  78 'clojure.contrib.pprint/*print-right-margin*
-        ';printSharedCheckBox false 'clojure.contrib.pprint/*print-shared*
+        ;'printLinesTextField 25 'clojure.contrib.pprint/*print-lines*
+        'printMiserWidthTextField 40 'clojure.pprint/*print-miser-width*
+        ;;'printRadixCheckBox false 'clojure.contrib.pprint/*print-radix*
+        ;'printRightMarginTextField  78 'clojure.contrib.pprint/*print-right-margin*
+        ;'printSharedCheckBox false 'clojure.contrib.pprint/*print-shared*
         'printStackTraceCheckBox false 'org.enclojure.repl.main/*print-stack-trace-on-error*
-        'printSuppressNamespaceCheckBox  false 'clojure.contrib.pprint/*print-suppress-namespaces*
-        'usePrettyPrintCheckBox  true 'clojure.contrib.pprint/*print-pretty*
+        'printSuppressNamespaceCheckBox  false 'clojure.pprint/*print-suppress-namespaces*
+        'usePrettyPrintCheckBox  true 'clojure.pprint/*print-pretty*
         'warnOnReflectionCheckBox  false 'clojure.core/*warn-on-reflection*
         'includeAllClasspathsCheckBox  true :include-all-project-classpaths
         'enableLogging  true :enable-logging
         'enableIDEReplCheckBox  false :enable-ide-repl
          ]
        ))))
-    
+
 (defn save-preferences []
     (pref-utils/put-prefs -prefs-category-
       @*repl-settings*))
@@ -110,7 +111,7 @@
   (let [selected (.getSelectedIndex (.clojurePlatformsComboBox dlg))]
     (when (and (>= selected 0)
             (>= (count @platform-options/*clojure-platforms*) selected))
-      (:key (@platform-options/*clojure-platforms* selected)))))      
+      (:key (@platform-options/*clojure-platforms* selected)))))
 
 (defn load-settings [dlg]
   (platform-options/load-settings dlg)
@@ -118,7 +119,7 @@
     (controls/populate-settings *edit-map* dlg prefs)
     (set-standalone-platform dlg prefs)
     (swap! -settings-loaded?- (fn [_] true))))
-              
+
 (defn save-settings
   [dlg]
   (platform-options/save-settings dlg)
@@ -130,8 +131,8 @@
             :stand-alone-repl-platform
             (get-standalone-platform dlg)))))
    (save-preferences))
-   
-(defn changed [changed pcs] 
+
+(defn changed [changed pcs]
   (sync nil
     (when @changed
       (alter changed (fn [_] false))
@@ -142,7 +143,7 @@
   [key-to-show]
   (proxy [DefaultListCellRenderer][]
     (getListCellRendererComponent
-         [jist value index isSelected cellHasFocus]      
+         [jist value index isSelected cellHasFocus]
       (proxy-super getListCellRendererComponent
         jist value index isSelected cellHasFocus)
       (.setText this (key-to-show value))
@@ -230,4 +231,4 @@
     (.setSize (java.awt.Dimension. 800 500))
     (.setVisible true))
     {:frame frame :options options :pane pane}))
-  
+

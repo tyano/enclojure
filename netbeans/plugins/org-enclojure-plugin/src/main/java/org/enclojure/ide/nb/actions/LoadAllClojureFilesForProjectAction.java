@@ -40,6 +40,10 @@ public class LoadAllClojureFilesForProjectAction extends AbstractAction implemen
     static final String actionFunc = "loadall-source-for-project";
     static final String checkEnabledFunc = "check-enabled-for-load-all-sources?";
 
+    static {
+        SourceLoader.loadReplWin();
+    }
+
        public static synchronized LoadAllClojureFilesForProjectAction create(Map<?,?> args) throws Exception {
         Integer group = (Integer)args.get("source-group");
         if(group == null) {
@@ -53,7 +57,10 @@ public class LoadAllClojureFilesForProjectAction extends AbstractAction implemen
     public LoadAllClojureFilesForProjectAction(int sourceGroup)
         { this.sourceGroup = sourceGroup;}
 
+    @Override
     public void actionPerformed(ActionEvent e) {assert false;}
+
+    @Override
     public Action createContextAwareInstance(Lookup context) {
         return new ContextAction(context);
     }
@@ -93,6 +100,7 @@ public class LoadAllClojureFilesForProjectAction extends AbstractAction implemen
             Project _p =  context.lookup(Project.class);
             p = (_p != null && enable(_p)) ? _p : null;
         }
+        @Override
         public void actionPerformed(ActionEvent e) {
             perform(p);
         }
@@ -101,6 +109,7 @@ public class LoadAllClojureFilesForProjectAction extends AbstractAction implemen
                 public Presenter() {
                     super(ContextAction.this);
                 }
+                @Override
                 public JComponent[] getMenuPresenters() {
                     if (p != null) {
                         Mnemonics.setLocalizedText(this, labelFor(p));
@@ -109,6 +118,7 @@ public class LoadAllClojureFilesForProjectAction extends AbstractAction implemen
                         return new JComponent[0];
                     }
                 }
+                @Override
                 public JComponent[] synchMenuPresenters(JComponent[] items) {
                     return getMenuPresenters();
                 }

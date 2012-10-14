@@ -52,40 +52,38 @@ import org.netbeans.api.project.Project;
 import org.enclojure.ide.nb.editor.ReplTopComponent;
 import java.util.logging.Level;
 import org.enclojure.ide.core.LogAdapter;
+import org.enclojure.ide.nb.actions.SourceLoader;
 
 @SuppressWarnings("unchecked") 
 public class ClojureCodeCompletion_Provider implements CompletionProvider {
     
  private static final LogAdapter LOG = new LogAdapter(ClojureCodeCompletion_Provider.class.getName());
 
- static {try {
-            RT.var("clojure.core","require").invoke(Symbol.create("org.enclojure.ide.nb.editor.completion.cljcodecompletion"));
-        } catch (Throwable ex) {
-            Exceptions.printStackTrace(ex);
-        }
-}
+ static {
+     SourceLoader.loadCljCodeCompletion();
+     SourceLoader.loadClassPathUtils();
+ }
 
-final static Var getnamesfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-names");
-final static Var getjavamethodsfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "getMethods1");
-final static Var getalljavamethodsfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "getAllJavaMethods");
-final static Var getalljavainstancemethodsfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-methods-no-static-maplist");
-final static Var getfulljavaclassesfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-full-names");
-final static Var getclojurenamesfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-clojure-names-with-users");
-final static Var getclojurefunctionsfornsfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-clojure-functions-for-nspart");
-final static Var getstaticjavamethodsfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "getMethodsWithStatic");
-final static Var getalljavaclassesfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "getAllJavaClassesWithNS");
-final static Var getalljavaclassesbyfilterfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "getAllJavaClassesByFilterWithNS");
-final static Var getallclojurenamespacesfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "getAllClojureNamespacesByFilterWithNS");
-final static Var selectcurrentformfn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-ns-node-require");
+ final static String CODE_COMPLETION = "org.enclojure.ide.nb.editor.completion.cljcodecompletion";
+
+final static Var getnamesfn = RT.var(CODE_COMPLETION, "get-names");
+final static Var getjavamethodsfn = RT.var(CODE_COMPLETION, "getMethods1");
+final static Var getalljavamethodsfn = RT.var(CODE_COMPLETION, "getAllJavaMethods");
+final static Var getalljavainstancemethodsfn = RT.var(CODE_COMPLETION, "get-methods-no-static-maplist");
+final static Var getfulljavaclassesfn = RT.var(CODE_COMPLETION, "get-full-names");
+final static Var getclojurenamesfn = RT.var(CODE_COMPLETION, "get-clojure-names-with-users");
+final static Var getclojurefunctionsfornsfn = RT.var(CODE_COMPLETION, "get-clojure-functions-for-nspart");
+final static Var getstaticjavamethodsfn = RT.var(CODE_COMPLETION, "getMethodsWithStatic");
+final static Var getalljavaclassesfn = RT.var(CODE_COMPLETION, "getAllJavaClassesWithNS");
+final static Var getalljavaclassesbyfilterfn = RT.var(CODE_COMPLETION, "getAllJavaClassesByFilterWithNS");
+final static Var getallclojurenamespacesfn = RT.var(CODE_COMPLETION, "getAllClojureNamespacesByFilterWithNS");
+final static Var selectcurrentformfn = RT.var(CODE_COMPLETION, "get-ns-node-require");
 final static Var getprojectjarsfn = RT.var("org.enclojure.ide.common.classpath-utils", "get-project-classpath");
-final static Var getresultsforscenario1fn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-all-results-for-scenario1");
-final static Var getresultsforscenario2fn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-all-results-for-scenario2");
-final static Var getresultsforscenario3fn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-all-results-for-scenario3");
-final static Var getresultsforscenario4fn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-all-results-for-scenario4");
-final static Var getallclojurenamespaces1fn = RT.var("org.enclojure.ide.nb.editor.completion.cljcodecompletion", "get-all-clojure-namespaces-maplist");
-
-
-public Var _completionItemFn = RT.var("clojure.core", "ns-imports");
+final static Var getresultsforscenario1fn = RT.var(CODE_COMPLETION, "get-all-results-for-scenario1");
+final static Var getresultsforscenario2fn = RT.var(CODE_COMPLETION, "get-all-results-for-scenario2");
+final static Var getresultsforscenario3fn = RT.var(CODE_COMPLETION, "get-all-results-for-scenario3");
+final static Var getresultsforscenario4fn = RT.var(CODE_COMPLETION, "get-all-results-for-scenario4");
+final static Var getallclojurenamespaces1fn = RT.var(CODE_COMPLETION, "get-all-clojure-namespaces-maplist");
 
 
 private static final int LowercaseAfterParen = 0;

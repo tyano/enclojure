@@ -14,7 +14,7 @@
 ;*    Author: Eric Thorsen
 ;*******************************************************************************
 )
-(ns org.enclojure.ide.preferences.platform-options  
+(ns org.enclojure.ide.preferences.platform-options
     (:require
           [org.enclojure.ide.settings.utils :as pref-utils]
           [org.enclojure.ide.nb.editor.utils :as utils]
@@ -24,14 +24,13 @@
 (:import (javax.swing Icon ImageIcon)
   (java.util.logging Level)
   (java.util  UUID)
-  (java.util.zip ZipInputStream ZipEntry)  
+  (java.util.zip ZipInputStream ZipEntry)
   (org.openide.util NbBundle Utilities)
   (org.netbeans.api.project.libraries LibraryManager Library)
   (org.openide.filesystems FileObject FileStateInvalidException
       FileUtil JarFileSystem URLMapper)
   (java.beans PropertyChangeSupport PropertyChangeListener PropertyChangeEvent
     PropertyVetoException)
-  (org.enclojure.ide.preferences EnclojureOptionsCategory)
   (org.enclojure.ide.preferences EnclojurePreferencesPanel)
   (javax.swing JFileChooser DefaultListModel JOptionPane JComboBox DefaultComboBoxModel)
   (javax.swing.filechooser FileFilter FileView)
@@ -59,7 +58,7 @@
     (compare [x y]
       (compare (:name x) (:name y)))))
 
-(defn create-library 
+(defn create-library
   "Create a library in the netbeans library manager."
   [name classpaths]
   (.createLibrary (LibraryManager/getDefault)
@@ -108,8 +107,8 @@
       (if e
         (let [full-name (str dest-path File/separator (.getName e))]
           (with-open [fout (FileOutputStream. full-name)]
-            (faster-copy istream fout 8096)
-            (recur (.getNextEntry istream) (conj lib-names full-name))))
+            (faster-copy istream fout 8096))
+          (recur (.getNextEntry istream) (conj lib-names full-name)))
         lib-names))))
 
 (defn get-defined-platforms
@@ -126,13 +125,13 @@ and creates entries in the local preferences path."
             (let [pname (.getNameExt p)
                   dest (File. base-path pname)]
                 (.mkdirs dest)
-                (with-open [is (.getInputStream p)]
-                    (let [class-paths (unzip-to is dest)]
+                (let [class-paths (with-open [is (.getInputStream p)]
+                                    (unzip-to is dest))]
                       (recur (rest ps) (conj pforms
                                          (struct platform pname
-                                           class-paths 
+                                           class-paths
                                            (= pname -default-platform-)
-                                           (hash pname)))))))
+                                           (hash pname))))))
           pforms)))))
 
 (defn is-shipped-platform? [platform]
@@ -145,12 +144,13 @@ and creates entries in the local preferences path."
   "This functions sets the key for the platform struct which should be used
 as the identity of the platform."
   [n cp default]
-  (struct platform n cp default 
+  (struct platform n cp default
     (str (UUID/randomUUID))))
 
 (def
    #^{:doc "sequence of platforms"
-      :prefs-category (str *ns*)}
+      :prefs-category (str *ns*)
+      :dynamic true}
    *clojure-platforms* (ref nil))
 
 (defn validate-platforms
@@ -183,7 +183,7 @@ as the identity of the platform."
   ; make sure the current platform is saved before flushing to disk.
   (logger/info "---------- Preferences being saved : count {} data {}"
         (count @*clojure-platforms*) @*clojure-platforms*)
-    (pref-utils/put-prefs -prefs-category- 
+    (pref-utils/put-prefs -prefs-category-
 (vec (filter (fn [{n :name}]
                     (and n (not= "" n)))
         @*clojure-platforms*))))
@@ -274,7 +274,7 @@ platforms list"
         (alter *clojure-platforms*
              #(let [[x xs] (split-at index %)]
                 (ensure-default-platform-is-set
-                    (apply vector 
+                    (apply vector
                       (concat x [(merge p platform)] (rest xs)))))))
     (logger/info "update-platform: after trans {}" (@*clojure-platforms* index)))))
 
@@ -289,7 +289,8 @@ platforms list"
         (update-platform (assoc curr-default :default false))))))
 
 (def
-   #^{:doc "hash-map for mapping keys to their associated ui-field-editor-maps"}
+   #^{:doc "hash-map for mapping keys to their associated ui-field-editor-maps"
+      :dynamic true}
    *edit-map*
    (controls/build-settings-wrappers
     org.enclojure.ide.preferences.EnclojurePreferencesPanel
@@ -465,7 +466,7 @@ This is only doing a text search on the names...should do something more."
 (defn classpath-list-changed
   "Only enable the set as default checkbox if there are classpaths set"
   [pane event]
-  (logger/info "classpath-list-changed: {}" 
+  (logger/info "classpath-list-changed: {}"
     (get-vec-from-list-model (controls/get-val *edit-map* pane "classPathList")))
 ;  (logger/info "classpath-list-changed: name {} old {} new {}"
 ;    (.getPropertyName event)
@@ -543,7 +544,7 @@ This is only doing a text search on the names...should do something more."
                   (set (keys shipped-platforms-map))
                   (set (keys current-platforms-map)))]
     (vec (filter #(pos? (count (:name %)))
-           (if (pos? (count missing))              
+           (if (pos? (count missing))
                 (reduce (fn [v k]
                           (conj v (shipped-platforms-map k)))
                     current-platforms missing)
@@ -583,7 +584,7 @@ This is only doing a text search on the names...should do something more."
   (save-preferences)
   (ensure-libs @*clojure-platforms*))
 
-(def *events-map*
+(def ^:dynamic *events-map*
   {"removePlatformButtonActionPerformed" remove-platform
    "addPlatformButtonActionPerformed" add-platform
    "platformListValueChanged" platform-list-changed

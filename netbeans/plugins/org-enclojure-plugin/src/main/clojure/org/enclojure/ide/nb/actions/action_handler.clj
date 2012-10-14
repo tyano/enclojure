@@ -6,7 +6,6 @@
     org.enclojure.ide.repl.repl-manager
     org.enclojure.ide.repl.repl-panel
     org.enclojure.ide.nb.editor.repl-win
-    org.enclojure.ide.nb.editor.repl-focus
     )
   (:require
     [org.enclojure.commons.c-slf4j :as logger]
@@ -29,7 +28,7 @@
     (clojure.lang Compiler)
     (java.io File PushbackReader FileReader OutputStreamWriter FileOutputStream)
     (java.util.logging Logger Level)
-    (java.util.logging Level)    
+    (java.util.logging Level)
     (javax.swing.text Document)
     (javax.swing.JEditorPane)
     ))
@@ -37,7 +36,7 @@
 ; setup logging
 (logger/ensure-logger)
 
-(def *settings* (ref {:refer-ns-after-file-load true
+(def ^:dynamic *settings* (ref {:refer-ns-after-file-load true
                       :refer-pretty-printer-after-ns-change true}))
 
 (defn update-settings [m]
@@ -109,7 +108,7 @@ the resulting file's ns is refered on successful load"
         p (ReplTopComponent/GetProjectFromActivatedNodes nodes)
         nsname (get-namespace pane)
         nsnode (get-namespace-node pane)
-        exp nsnode]        
+        exp nsnode]
     (execute-expr p exp nil)))
 
 (defn require-file-ns-action
@@ -118,7 +117,7 @@ the resulting file's ns is refered on successful load"
   (let [pane (current-editor-pane nodes)
         p (ReplTopComponent/GetProjectFromActivatedNodes nodes)
         nsname (get-namespace pane)
-        alias (last (.split (str nsname) "\\."))]        
+        alias (last (.split (str nsname) "\\."))]
     (execute-expr p (str "(require '[" nsname " :as " (or alias nsname) "])") nil)))
 
 
@@ -132,7 +131,7 @@ the resulting file's ns is refered on successful load"
           (.RequestReplFocus repl-tc))))))
 
 (defn goto-declaration-action
-  "Attempt to location the definition of a symbol using the 
+  "Attempt to location the definition of a symbol using the
 completion support system (static analysis) so that the code does not need to
 be loaded"
   []

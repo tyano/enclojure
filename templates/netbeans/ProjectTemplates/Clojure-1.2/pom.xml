@@ -78,6 +78,10 @@
       <id>clojars</id>
       <url>http://clojars.org/repo/</url>
     </repository>
+    <repository>
+      <id>clojars.org</id>
+      <url>http://clojars.org/repo</url>
+    </repository>
   </repositories>
   <dependencies>
   <dependency>
@@ -93,7 +97,7 @@
     <dependency>
       <groupId>swank-clojure</groupId>
       <artifactId>swank-clojure</artifactId>
-      <version>1.2.1</version>
+      <version>1.4.2</version>
         <exclusions>
           <exclusion>
             <groupId>org.clojure</groupId>

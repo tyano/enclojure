@@ -16,11 +16,12 @@
 )
 (ns org.enclojure.ide.nb.editor.repl-win
   (:require
+    [org.enclojure.ide.nb.actions.token-navigator :refer :all :as token-navigator]
+    [org.enclojure.ide.navigator.token-nav :refer :all :as token-nav]
     [org.enclojure.ide.repl.repl-panel :as repl-panel]
     [org.enclojure.ide.repl.repl-manager :as repl-manager]
     [org.enclojure.ide.common.classpath-utils :as classpath-utils]
     [org.enclojure.ide.debugger.jdi :as jdi]
-    [org.enclojure.ide.nb.editor.repl-focus :as repl-focus]
     [org.enclojure.ide.preferences.enclojure-options-category
         :as enclojure-options-category]
     [org.enclojure.ide.preferences.platform-options
@@ -31,26 +32,68 @@
     [org.enclojure.ide.settings.utils :as pref-utils]
     [org.enclojure.ide.repl.factory :as factory]
     [org.enclojure.commons.c-slf4j :as logger]
-    [org.enclojure.ide.nb.editor.repl-focus :as repl-focus]
     [org.enclojure.ide.debugger.jdi :as jdi]
     [org.enclojure.ide.nb.source.add-file :as add-file]
     [org.enclojure.ide.common.error-reporting :as error-reporting]
     [org.enclojure.ide.nb.editor.completion.symbol-caching :as symbol-caching]
     )
   (:import (org.enclojure.ide.repl ReplPanel)
+    (org.openide.windows TopComponent)
+    (org.openide.cookies EditorCookie)
     (org.enclojure.repl IReplWindow IReplWindowFactory)
     (org.enclojure.ide.nb.editor ReplTopComponent)
     (org.netbeans.api.project Project ProjectInformation ProjectUtils Sources)
     (org.openide.filesystems FileUtil)
     (java.awt EventQueue Component)
     (java.util.logging Level Logger)
-    (java.io File)    
+    (java.io File)
     (org.openide NotifyDescriptor$Confirmation DialogDisplayer NotifyDescriptor)
     )
   )
 
+(def last-activated-repl (atom nil))
+
 ; setup logging
 (logger/ensure-logger)
+
+(defn get-project-name [#^Project p]
+  (ReplTopComponent/GetProjectName p))
+  ;(-> p .getLookup (.lookup (class ProjectInformation)) .getDisplayName))
+
+(defn all-repls []
+  (remove nil? (map #(:repl-tc %) (repl-manager/all-repl-configs))))
+
+(defn find-first-visible-repl []
+  (let [repls (all-repls)]
+    (loop [repls repls]
+      (when-let [repl (first repls)]
+        (if (.isVisible repl)
+          repl
+          (recur (next repls)))))))
+
+(defn find-project-repl [#^Project p]
+  (let [project-name (get-project-name p)
+        local? (nil? project-name)
+        {:keys [repl-tc]} (repl-manager/get-repl-config (if local? (ReplTopComponent/IDE_REPL) project-name))]
+    repl-tc))
+
+(defn find-active-repl [#^Project p]
+  (some #(if (instance? clojure.lang.IFn %) (%) %)
+    [
+    (:repl-tc (repl-manager/get-repl-config @last-activated-repl))
+    find-first-visible-repl
+    (find-project-repl p)
+    (first (all-repls))
+     ]))
+
+(defn set-caret-visibility [repl-name repl-pane activated?]
+  (let [editor-pane (current-editor-pane)]
+    (if activated?
+      (do
+        (swap! last-activated-repl (fn[_] repl-name))
+        (when editor-pane
+          (-> editor-pane .getCaret (.setVisible false))))
+      (-> repl-pane .getCaret (.setVisible false)))))
 
 (defn- verify-classpath
   [classpath]
@@ -133,7 +176,7 @@ If not, allows the user to add the default platform to the classpath of their pr
 
 
 (defn- config-with-preferences
-  ([settings-map]    
+  ([settings-map]
     (let [prefs (enclojure-options-category/load-preferences)
           jvm-args (when-let [args (prefs :jvm-additional-args)]
                      (let [vargs (.split args " ")]
@@ -177,7 +220,7 @@ If not, allows the user to add the default platform to the classpath of their pr
       (-> irepl .getReplWindow .open)
       (-> irepl .getReplWindow .makeActive)
     (catch Exception e
-      (error-reporting/report-error        
+      (error-reporting/report-error
         (format "Error starting REPL %s using host %s with port %s. Make sure
 the JVM you are connecting to has the Enclojure repl-server running and has
 the clojure.jar and clojure-contrib.jars in the classpath. Also check your host
@@ -204,7 +247,7 @@ and port settings." repl-id) e)))))
           (.setResetReplFn
             (.getReplPanel irepl)
             #(do (repl-manager/stop-internal-repl repl-id)
-               (start-stand-alone-repl repl-id java-args classpath)))          
+               (start-stand-alone-repl repl-id java-args classpath)))
           (repl-panel/evaluate-in-repl repl-id
             (str (repl-manager/get-settings-set-expression repl-id)))
             (-> irepl .getReplWindow .open)
@@ -230,7 +273,7 @@ and port settings." repl-id) e)))))
             (str java.io.File/pathSeparator
               (classpath-utils/get-all-classpaths))))))
     (catch Exception e
-      (error-reporting/report-error        
+      (error-reporting/report-error
         (str "Stand alone repl failed to start.  Make sure you have Clojure
 and Clojure.contrib jars in assigned Clojure Platform for the standalone REPL.
 See the Enclojure category under preferences to view your settings"
@@ -292,7 +335,7 @@ See the Enclojure category under preferences to view your settings"
                      (pull-props (when (pbean :webModule)
                         (bean (pbean :webModule)))
                                     [:contentDirectory]))
-         m (assoc props :project-properties  
+         m (assoc props :project-properties
              (reduce (fn [m [k v]]
                        (assoc m k (pr-str v))) {} props))]
     (logger/info "Map1 count {}" (count m))
@@ -319,11 +362,11 @@ with java launcher."
     (map (fn [[k v]] (format -repl-props-format- (name k) (pr-str v))) props)))
 
 ;========================================================================
-; External managed project REPL startup 
+; External managed project REPL startup
 ;========================================================================
 (defn start-project-repl [#^Project p]
   (swap! -project- (fn [_] p))
-  (let [repl-id (repl-focus/get-project-name p)
+  (let [repl-id (get-project-name p)
         classpath (classpath-utils/get-repl-classpath p)
         curr-config (repl-manager/get-repl-config repl-id)
         updated-config (merge (or curr-config {:repl-id repl-id})
@@ -347,18 +390,18 @@ with java launcher."
           (-> irepl .getReplWindow .open)
           (-> irepl .getReplWindow .makeActive)))
     (catch Exception e
-      (error-reporting/report-error        
+      (error-reporting/report-error
         (str (format "Project REPL for %s failed to start.  Make sure you have Clojure
-and Clojure.contrib jars as libraries in your project." repl-id) 
+and Clojure.contrib jars as libraries in your project." repl-id)
           "\nThese are both required to start a repl."
           "\nFor a project REPL, you can add them as libraries to the project.\n"
           (.getMessage e))
           e)))))
-        
+
 
 (defn stop-project-repl [proj repl-tc-closing?]
-  (let [repl-id (if (string? proj) proj 
-                    (repl-focus/get-project-name proj))]
+  (let [repl-id (if (string? proj) proj
+                    (get-project-name proj))]
     (if (= repl-id ReplTopComponent/IDE_REPL)
       ((:repl-fn (repl-manager/get-repl-config repl-id)) ":CLOSE-REPL")
       (repl-manager/stop-internal-repl repl-id))
@@ -366,7 +409,7 @@ and Clojure.contrib jars as libraries in your project." repl-id)
       (repl-manager/unregister-repl repl-id))))
 
 (defn start-stop-project-repl [#^Project p]
-  (let [repl-id (repl-focus/get-project-name p)]
+  (let [repl-id (get-project-name p)]
     (if (repl-manager/repl-connected? repl-id)
       (stop-project-repl p nil)
       (start-project-repl p))))
@@ -382,10 +425,10 @@ and Clojure.contrib jars as libraries in your project." repl-id)
   [#^Project p]
   (boolean
     (repl-manager/repl-connected?
-        (repl-focus/get-project-name p))))
+        (get-project-name p))))
 
 (defn run-context-menu-name [#^Project p]
-  (let [repl-id (repl-focus/get-project-name p)]
+  (let [repl-id (get-project-name p)]
     (ReplTopComponent/getBundleProperty
       (if (repl-manager/repl-connected? repl-id)
         "CTL_RunProjectWithReplAction_Stop"
@@ -401,7 +444,7 @@ and Clojure.contrib jars as libraries in your project." repl-id)
 func. The repl-function is used to paste the expression into the repl-window first
 (such as when 'eval expression' when you want history or not)"
   ([#^Project p expr nsnode repl-func]
-  (let [repl-tc (repl-focus/find-active-repl p)]
+  (let [repl-tc (find-active-repl p)]
     (when repl-tc
       (let [repl-id (.GetReplID repl-tc)]
         (.requestVisible repl-tc)
@@ -415,7 +458,7 @@ func. The repl-function is used to paste the expression into the repl-window fir
     (:dbg-engines (repl-manager/get-repl-config repl-id))))
 
 (defn start-attach-detach-debugger [#^Project p]
-  (let [repl-id (repl-focus/get-project-name p)
+  (let [repl-id (get-project-name p)
         _ (when-not (repl-manager/repl-connected? repl-id)
                 (start-stop-project-repl p))
         {:keys [dbg-engines repl-panel]} (repl-manager/get-repl-config repl-id)]
@@ -424,7 +467,7 @@ func. The repl-function is used to paste the expression into the repl-window fir
       (jdi/attach-dbg repl-id (._debugPort repl-panel)))))
 
 (defn debug-context-menu-name [#^Project p]
-  (let [repl-id (repl-focus/get-project-name p)]
+  (let [repl-id (get-project-name p)]
     (ReplTopComponent/getBundleProperty
       (if (repl-debugging? repl-id)
         "CTL_DetachDebugProjectWithReplAction"
@@ -445,29 +488,29 @@ the index is out of range returns nil"
           (let [ret (source-groups index)]
             (logger/info "Returning the {} item from {} {}"
               index (class source-groups) source-groups)
-            {:name (first ret) :source-group (fnext ret)})))))        
+            {:name (first ret) :source-group (fnext ret)})))))
 
 (defn load-all-source-context-menu-name
   "Gets the context menu with the source group name"
   [#^Project p source-group-inx]
-  (let [repl-id (repl-focus/get-project-name p)]
-    (let [{:keys [name source-group]} (get-source-group p source-group-inx)]       
+  (let [repl-id (get-project-name p)]
+    (let [{:keys [name source-group]} (get-source-group p source-group-inx)]
       (if name
        (format
             (ReplTopComponent/getBundleProperty
               "CTL_LoadAllSourcesAction" repl-id) name) ""))))
-  
+
 (defn check-enabled-for-load-all-sources?
   "If the source-group is in range and the REPL is running returns true"
   [#^Project p source-group-inx]
   (boolean (when-let [source-group (get-source-group p source-group-inx)]
     (repl-running? p))))
-  
+
 (defn loadall-source-for-project
   "If the source group is in range, loads all clojure source files into the REPL"
   [#^Project p source-group-inx]
   (when-let [{:keys [name source-group]} (get-source-group p source-group-inx)]
-    (let [repl-id (repl-focus/get-project-name p)
+    (let [repl-id (get-project-name p)
           sources (symbol-caching/file-obj-traverse
                     source-group
                     #(= "clj" (.getExt %)))
@@ -480,6 +523,6 @@ the index is out of range returns nil"
         (logger/info "Loading Resource {} in REPL. Full-path {}" ns-f (.getPath source))
         (execute-expr p
             (repl-panel/load-with-debug full-text (meta-utils/ns-from-file ns-f)) nil))))))
-          
+
 
 

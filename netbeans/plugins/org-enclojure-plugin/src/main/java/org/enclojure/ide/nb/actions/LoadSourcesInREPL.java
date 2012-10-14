@@ -14,10 +14,16 @@ import clojure.lang.RT;
 import clojure.lang.IFn;
 
 public final class LoadSourcesInREPL extends CookieAction {
-    final static IFn loadSourcesFn = 
+    
+    
+    static {
+        SourceLoader.loadActionHandler();
+    }
+    final static IFn loadSourcesFn =
             (IFn)RT.var("org.enclojure.ide.nb.actions.action-handler"
                         , "load-sources-in-repl");
-    
+
+    @Override
     protected void performAction(Node[] activatedNodes) {
         try {
             EditCookie editCookie = activatedNodes[0].getLookup().lookup(EditCookie.class);
@@ -29,16 +35,19 @@ public final class LoadSourcesInREPL extends CookieAction {
         // TODO use editCookie
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_ALL;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(LoadSourcesInREPL.class, "CTL_LoadSourcesInREPL");
     }
 
-    protected Class[] cookieClasses() {
-        return new Class[]{EditCookie.class};
+    @Override
+    protected Class<?>[] cookieClasses() {
+        return new Class<?>[]{EditCookie.class};
     }
 
     @Override
@@ -48,6 +57,7 @@ public final class LoadSourcesInREPL extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

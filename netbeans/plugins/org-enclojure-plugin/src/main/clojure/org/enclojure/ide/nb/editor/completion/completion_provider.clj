@@ -24,6 +24,7 @@
     (java.util.logging Level)
     (java.util Collection)
     (javax.swing JToolTip)
+    (javax.swing.text JTextComponent)
     (org.netbeans.api.lexer TokenHierarchy TokenSequence Token)
     (java.awt.event ActionEvent))
   (:require
@@ -38,11 +39,11 @@
 (defn create-task
   [query-type #^JTextComponent component]
   (completion-task/get-completion-task))
-  
+
 (defn get-auto-query-types
   [#^JTextComponent component #^String typed-text]
     (if (.contains "./" typed-text)
-      CompletionProvider/COMPLETION_QUERY_TYPE  0))
+      CompletionProvider/COMPLETION_QUERY_TYPE (int 0)))
 
 (defn task-canceled [provider]
   (logger/warn "CompletionProvider task canceled???"))
@@ -81,5 +82,5 @@
 (def small "/Users/ericthorsen/dev/enclojure-nb-clojure-plugin/org.enclojure.ide.nb.clojure_plugin_suite/org.enclojure.ide.nb.editor/src/org/enclojure/ide/nb/editor/completion/completion_provider.clj")
 (def big "/Users/ericthorsen/Clojure/src/clj/clojure/core.clj")
 
-              
+
 

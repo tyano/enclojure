@@ -51,14 +51,19 @@ package org.enclojure.ide.debugger.variablesFiltering;
 import clojure.lang.RT;
 import clojure.lang.Var;
 import org.enclojure.ide.debugger.variablesFiltering.ClojureVariablesFilter.AttributeMap;
+import org.enclojure.ide.nb.actions.SourceLoader;
 import org.netbeans.spi.viewmodel.TableModel;
 import org.netbeans.spi.viewmodel.TableModelFilter;
 import org.netbeans.spi.viewmodel.UnknownTypeException;
 import org.netbeans.api.debugger.jpda.LocalVariable;
+import org.netbeans.spi.viewmodel.ColumnModel;
 import org.openide.util.Exceptions;
 
 public class ClojureVariablesTableModelFilter implements TableModelFilter {
 
+    static {
+        SourceLoader.loadJdiEval();
+    }
     public static Var _getValueFn = RT.var("org.enclojure.ide.debugger.jdi-eval", "get-value");
 
     public ClojureVariablesTableModelFilter() {

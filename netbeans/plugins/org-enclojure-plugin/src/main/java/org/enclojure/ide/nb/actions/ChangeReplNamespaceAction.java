@@ -14,9 +14,14 @@ import clojure.lang.Var;
 import org.openide.util.Exceptions;
 
 public final class ChangeReplNamespaceAction extends CookieAction {
+    private static final long serialVersionUID = 1L;
 
+    static {
+        SourceLoader.loadActionHandler();
+    }
     final Var loadNamespaceFn = RT.var("org.enclojure.ide.nb.actions.action-handler", "load-namespace-action");
-    
+
+    @Override
     protected void performAction(Node[] activatedNodes) {
         try {
             loadNamespaceFn.invoke(activatedNodes);
@@ -25,16 +30,19 @@ public final class ChangeReplNamespaceAction extends CookieAction {
         }
     }
 
+    @Override
     protected int mode() {
         return CookieAction.MODE_EXACTLY_ONE;
     }
 
+    @Override
     public String getName() {
         return NbBundle.getMessage(ChangeReplNamespaceAction.class, "CTL_ChangeReplNamespaceAction");
     }
 
-    protected Class[] cookieClasses() {
-        return new Class[]{EditorCookie.class};
+    @Override
+    protected Class<?>[] cookieClasses() {
+        return new Class<?>[]{EditorCookie.class};
     }
 
     @Override
@@ -44,6 +52,7 @@ public final class ChangeReplNamespaceAction extends CookieAction {
         putValue("noIconInMenu", Boolean.TRUE);
     }
 
+    @Override
     public HelpCtx getHelpCtx() {
         return HelpCtx.DEFAULT_HELP;
     }

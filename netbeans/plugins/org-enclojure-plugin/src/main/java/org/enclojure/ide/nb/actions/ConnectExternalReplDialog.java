@@ -19,10 +19,14 @@ import clojure.lang.Var;
  * @author magrawal
  */
 public class ConnectExternalReplDialog extends javax.swing.JDialog {
+    private static final long serialVersionUID = 1L;
 
+
+    static {
+        SourceLoader.loadReplWin();
+    }
     static final Var connectExternalRepl =
-      RT.var("org.enclojure.ide.nb.editor.repl-win"
-                , "connect-external-repl");
+                    RT.var("org.enclojure.ide.nb.editor.repl-win", "connect-external-repl");
 
     /** Creates new form ConnectExternalReplDialog */
     public ConnectExternalReplDialog(java.awt.Frame parent, boolean modal) {
@@ -159,9 +163,11 @@ public class ConnectExternalReplDialog extends javax.swing.JDialog {
     */
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 ConnectExternalReplDialog dialog = new ConnectExternalReplDialog(new javax.swing.JFrame(), true);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
                         System.exit(0);
                     }

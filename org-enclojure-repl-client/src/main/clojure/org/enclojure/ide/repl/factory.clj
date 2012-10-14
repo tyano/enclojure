@@ -31,19 +31,20 @@
            You will also have to implement the org.enclojure.repl.IReplWindowFactory
            for creating parent windows for the REPLs.  This enables this framework
            to be pluggable into another windowing framework such as Netbeans."}
-  org.enclojure.ide.repl.factory  
-  (:require    
+  org.enclojure.ide.repl.factory
+  (:require
     [org.enclojure.ide.repl.repl-panel :as repl-panel]
     [org.enclojure.ide.repl.repl-manager :as repl-manager]
     [org.enclojure.commons.validation :as validation]
     [org.enclojure.ide.repl.repl-data :as repl-data]
     [org.enclojure.repl.main :as repl-main]
     [clojure.contrib.except :as contrib.except]
+    [org.enclojure.ide.repl.DefReplWindowFactory]
     )
   (:import (org.enclojure.repl IReplWindow IRepl IReplWindowFactory)
             (org.enclojure.ide.repl ReplPanel)
     (org.enclojure.ide.repl DefReplWindowFactory)))
-     
+
 
 (defn create-IRepl
   [repl-context
@@ -75,7 +76,7 @@ otherwise creates a repl-top-componentwith a repl-panel and opens it if open-tc?
             (reduce concat [] repl-context))
           irepl))))
 
-(defn- create-repl [irepl spawn-repl-fn]    
+(defn- create-repl [irepl spawn-repl-fn]
   (let [spawned-repl-keys (spawn-repl-fn)
         {:keys [repl-id startup-expr]} (-> irepl .getReplContext)]
     ; store off all the keys retiurned by this function.
@@ -108,7 +109,7 @@ using the host and port defined in the IReplUnmanagedExternalContext"
   (let [repl-context (merge repl-data/-default-repl-data- repl-context-arg)]
     (validation/validate-throw-on-fail repl-context
         repl-data/-repl-context-external-validation-)
-    (let [irepl (assure-repl-panel repl-context repl-window-factory)]        
+    (let [irepl (assure-repl-panel repl-context repl-window-factory)]
         (create-repl irepl
           #(repl-main/create-repl-client-with-back-channel
              (:host repl-context)

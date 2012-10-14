@@ -23,12 +23,8 @@
     )
   (:import (org.netbeans.api.java.classpath ClassPath GlobalPathRegistry
              GlobalPathRegistryEvent GlobalPathRegistryListener)
-    (org.netbeans.modules.java.classpath ClassPathAccessor)
-    (java.lang ExceptionInInitializerError)
     (org.netbeans.api.java.platform JavaPlatform)
-    (org.netbeans.api.java.queries SourceForBinaryQuery)
     (org.netbeans.api.project Project ProjectUtils SourceGroup)
-    ;(org.netbeans.api.project.ui OpenProjects)
     (org.netbeans.api.java.classpath
             ClassPath
             ClassPath$PathConversionMode
@@ -38,18 +34,15 @@
     (org.netbeans.spi.java.classpath.support ClassPathSupport)
     (org.netbeans.api.java.platform JavaPlatformManager)
     (org.netbeans.api.java.project JavaProjectConstants)
-    (org.openide.filesystems FileObject FileStateInvalidException
-      FileUtil JarFileSystem URLMapper)
-    (java.io File FileWriter IOException StringReader StringWriter
-      PrintStream PrintWriter OutputStream ByteArrayOutputStream)
-    (java.net JarURLConnection URL URI)
-    ;(com.sun.jdi VirtualMachine VirtualMachineManager ReferenceType ClassType)
+    (org.openide.filesystems FileObject FileUtil)
+    (java.io File FileWriter IOException)
+    (java.net JarURLConnection)
     ))
 
 ; setup logging
 (logger/ensure-logger)
 
-(def *url-file-cache* (ref {}))
+(def ^:dynamic *url-file-cache* (ref {}))
 
 (defn flatten-paths [paths]
    "Helper function that takes a sequence of paths and returns a single string with portable separators"
@@ -202,20 +195,20 @@ After that follows the compile dependant classpaths for each of the projects."
 (defmulti get-file-name-from class)
 
 (defmethod get-file-name-from sun.net.www.protocol.file.FileURLConnection
-  [connection]  
+  [connection]
   (java.io.File. (-> connection .getURL .toURI)))
-  
+
 (defmethod get-file-name-from JarURLConnection
   [connection]
   (java.io.File. (-> connection .getJarFileURL .toURI)))
-  
+
 
 (defn file-from-jar-url
   "Given a jar URL, return a File object that refers to it"
   [jar-url]
   (except/throw-if-not
         (instance? java.net.URL jar-url)
-    "Expected argument type of java.net.URL got %s" 
+    "Expected argument type of java.net.URL got %s"
         (str (or (nil? jar-url) "nil" jar-url)))
   (when-let [jar-conn (.openConnection jar-url)]
     (get-file-name-from jar-conn)))
@@ -242,7 +235,7 @@ of all the JavaProjectConstants/SOURCES_TYPE_JAVA"
   (reduce #(if (.exists %2)
              (conj %1 (.getCanonicalPath %2))
              %1)
-          [] (filter identity 
+          [] (filter identity
                (map #(when-let [r (-> % .getRoot)]
                          (file-from-jar-url (.getURL r)))
                     (.entries cp)))))
@@ -317,10 +310,10 @@ use on a jvm startup."
 {:source-roots :execute-paths}"
   ([#^Project p]
     (when p
-        (loop [sources (get-source-roots p) 
+        (loop [sources (get-source-roots p)
                ret   {  :source-roots []
                         :execute-paths []
-                        :boot-paths [] }]    
+                        :boot-paths [] }]
         (if-let [source (first sources)]
             (recur (next sources)
               (reduce (fn [m [k src]]
@@ -338,7 +331,7 @@ in order to promote clojure finding the source and loading that before anything 
   ([#^Project p]
   (when p
     (swap! proj (fn [_] p))
-    (loop [sub-projects 
+    (loop [sub-projects
            (when-let [subpp (-> p .getLookup
                          (.lookup org.netbeans.spi.project.SubprojectProvider))]
              (logger/info "Found subproject..............")
@@ -396,7 +389,7 @@ setup in Netbeans"
                                         (.getCanonicalPath (:java-home %)))
                                             platforms))]
       platform))))
-  
+
 
 (defn classpath-for-repl []
     (let [l (org.openide.modules.InstalledFileLocator/getDefault)
@@ -406,7 +399,7 @@ setup in Netbeans"
       repl-server-jar))
 
 (defn get-repl-classpath [#^Project p]
-  (let [cp (str (classpath-for-repl) java.io.File/pathSeparator (get-project-classpath p))]    
+  (let [cp (str (classpath-for-repl) java.io.File/pathSeparator (get-project-classpath p))]
     cp))
 
 
