@@ -17,12 +17,12 @@
 
 
 (ns org.enclojure.ide.nb.editor.utils
-    (:use org.enclojure.ide.repl.repl-manager
-      org.enclojure.ide.common.classpath-utils)
-    (:require [org.enclojure.ide.nb.actions.token-navigator :as token-navigator]
-          [org.enclojure.ide.nb.classpaths.resource-tracking :as resource-tracking]
-      [org.enclojure.ide.analyze.symbol-nav :as symbol-nav]
-      )
+    (:require [org.enclojure.ide.repl.repl-manager :refer :all]
+              [org.enclojure.ide.common.classpath-utils :refer :all]
+              [org.enclojure.ide.nb.actions.token-navigator :as token-navigator]
+              [org.enclojure.ide.nb.classpaths.resource-tracking :as resource-tracking]
+              [org.enclojure.ide.analyze.symbol-nav :as symbol-nav]
+              [clojure.tools.logging :as logging])
     (:import (org.openide.modules InstalledFileLocator)
             (java.io File)
             (java.net URL URLEncoder)
@@ -91,7 +91,12 @@ they want for their projects.  This will be a preference"
    (when-let [e (get-current-editor-cookie)]
      (get-current-editor e)))
 
+(defn- dbg
+  ([prefix v] (logging/info prefix v) v)
+  ([v] (dbg "" v)))
+
 (defn get-file-object [file]
+  (dbg "file =" file)
   (let [f (java.io.File. (resource-tracking/resolve-source-file file))]
     (let [fo (FileUtil/toFileObject f)]
       fo)))
@@ -112,12 +117,12 @@ they want for their projects.  This will be a preference"
 e.g. (open-editor-file /Users/nsinghal/Work/scratch.clj 12)
 returns the editor-cookie used to open the file."
   ([file-path read-only?]
-    (let [fileObject (if (instance? FileObject file-path) file-path
-                       (get-file-object file-path))
-          dataObject (org.openide.loaders.DataObject/find fileObject)
-          editorCookie (.getCookie dataObject org.openide.cookies.EditorCookie)
+    (let [fileObject (dbg "fileObject =" (if (instance? FileObject file-path) file-path
+                       (get-file-object file-path)))
+          dataObject (dbg "dataObject =" (org.openide.loaders.DataObject/find fileObject))
+          editorCookie (dbg "editorCookie =" (.getCookie dataObject org.openide.cookies.EditorCookie))
           _ (.open editorCookie)
-          pane (aget (.getOpenedPanes editorCookie) 0)]
+          pane (dbg "pane =" (aget (.getOpenedPanes editorCookie) 0))]
       (when read-only?
         (.setEditable pane false))
       editorCookie))

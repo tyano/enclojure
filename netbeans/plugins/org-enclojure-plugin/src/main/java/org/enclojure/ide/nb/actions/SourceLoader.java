@@ -20,6 +20,7 @@ import clojure.lang.RT;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import org.openide.util.Exceptions;
 
 /**
  *
@@ -127,6 +128,7 @@ public final class SourceLoader {
             try {
                 RT.loadResourceScript(path);
             } catch (IOException ex) {
+                Exceptions.printStackTrace(ex);
                 throw new RuntimeException(ex);
             }
             loadedSet.add(path);

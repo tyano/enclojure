@@ -85,11 +85,17 @@
             <artifactId>clojure</artifactId>
             <version>${clojure.version}</version>
         </dependency>
-        <dependency>
+<!--        <dependency>
             <groupId>org.clojure</groupId>
             <artifactId>clojure-contrib</artifactId>
             <version>1.2.0</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.clojure</groupId>
+            <artifactId>tools.logging</artifactId>
+            <version>0.2.4</version>
         </dependency>
+
         <dependency>
             <groupId>org.enclojure</groupId>
             <artifactId>org-enclojure-commons</artifactId>
@@ -518,6 +524,14 @@
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-jdesktop-beansbinding</artifactId>
             <version>${netbeans.release}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>sun.jdk</groupId>
+            <artifactId>tools</artifactId>
+            <version>1.7</version>
+            <scope>system</scope>
+            <systemPath>${java.home}/../lib/tools.jar</systemPath>
         </dependency>
     </dependencies>
 
