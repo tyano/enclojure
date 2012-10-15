@@ -5,8 +5,8 @@
     <artifactId>org-enclojure-plugin</artifactId>
     <packaging>nbm</packaging>
     <version>1.5.0</version>
-    <description>Enclojure plugin for Clojure development for NB 7.0</description>
-    <name>Enclojure Clojure Plugin for NB 7.0</name>
+    <description>Enclojure plugin for Clojure development for NB 7.2</description>
+    <name>Enclojure Clojure Plugin for NB 7.2</name>
     <!--    <parent>
         <groupId>org.enclojure</groupId>
         <artifactId>nb-enclojure-app</artifactId>
